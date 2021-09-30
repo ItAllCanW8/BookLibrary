@@ -14,7 +14,7 @@
     <div class="container-fluid">
         <nav class="navbar navbar-expand-lg custom_nav-container ">
 
-            <a class="navbar-brand" href="${pageContext.request.contextPath}/home.do">
+            <a class="navbar-brand" href="${pageContext.request.contextPath}/home">
                 <h3>
                     Library
                 </h3>
@@ -27,20 +27,16 @@
             <div class="collapse navbar-collapse ml-auto" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/home.do">Home<span class="sr-only"></span></a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/home">Home<span class="sr-only"></span></a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/load_books.do">Books</a>
                     </li>
 
-                    <li><a class="dropdown-item"
-                           href="${pageContext.request.contextPath}/users.do">Readers</a></li>
-                    <li>
-
-                    <li><a class="dropdown-item"
-                           href="${pageContext.request.contextPath}/my_book_requests.do">Borrow Records</a></li>
-                    <li>
+                    <li class="nav-item"><a class="nav-link"
+                                            href="${pageContext.request.contextPath}/users.do">Readers</a>
+                    </li>
                 </ul>
             </div>
         </nav>
