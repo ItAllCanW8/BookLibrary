@@ -14,7 +14,7 @@
     <div class="container-fluid">
         <nav class="navbar navbar-expand-lg custom_nav-container ">
 
-            <a class="navbar-brand" href="${pageContext.request.contextPath}/home">
+            <a class="navbar-brand" href="${pageContext.request.contextPath}/home.do">
                 <h3>
                     Library
                 </h3>
@@ -27,7 +27,7 @@
             <div class="collapse navbar-collapse ml-auto" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/home">Home<span class="sr-only"></span></a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/home.do">Home<span class="sr-only"></span></a>
                     </li>
 
                     <li class="nav-item">
@@ -35,7 +35,7 @@
                     </li>
 
                     <li class="nav-item"><a class="nav-link"
-                                            href="${pageContext.request.contextPath}/users.do">Readers</a>
+                                            href="${pageContext.request.contextPath}/readers.do">Readers</a>
                     </li>
                 </ul>
             </div>

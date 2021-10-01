@@ -38,6 +38,14 @@ public class Book implements Serializable {
         this.status = status;
     }
 
+    public Book(short id, String title, String authors, String publishDate, short remainingAmount) {
+        this(id);
+        this.title = title;
+        this.authors = authors;
+        this.publishDate = publishDate;
+        this.remainingAmount = remainingAmount;
+    }
+
     public short getId() {
         return id;
     }

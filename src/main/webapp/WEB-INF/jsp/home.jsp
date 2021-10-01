@@ -2,16 +2,11 @@
 
 <html>
 
-<head>
-    <title>Library</title>
-    <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet" />
-</head>
-
 <body>
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
+    <c:set var="books" scope="request" value="${books}"/>
 
-<%--    <c:set var="books" scope="request" value="${books}"/>--%>
     <section class=" slider_section position-relative">
         <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
             <ol class="carousel-indicators">
@@ -72,27 +67,48 @@
 
 <section class="course_section layout_padding-bottom">
     <div class="side_img">
-        <img src="${pageContext.request.contextPath}/images/layout/side-img.png" alt="" />
+        <img src="${pageContext.request.contextPath}/images/layout/side-img.png" alt=""/>
     </div>
     <div class="container">
         <div class="heading_container">
             <h3>
-                <fmt:message key="books.popular"/>
+                Book List
             </h3>
+
+            <button type="button" class="btn btn-secondary" style="width: 40%" data-bs-toggle="modal"
+                    data-bs-target="#addBookModal">
+                Add Book
+            </button>
+
             <hr style="width:100%;text-align:left;margin-left:0">
         </div>
-        <div class="course_container">
-            <div class="course_content">
-                <c:forEach var="book" items="${books}">
-                    <div class="box">
-                        <img src="${pageContext.request.contextPath}/load_book_cover.do?fileName=${book.img}" alt="" />
-                        <a href="${pageContext.request.contextPath}/load_book_info.do?bookId=${book.id}">
-                            <img src="${pageContext.request.contextPath}/images/layout/link.png" alt="" />
-                        </a>
-                        <h5><ctg:out text="${book.title}"/></h5>
-                    </div>
-                </c:forEach>
-            </div>
+
+        <div class="event_container">
+            <table id="booksTable" class="table table-dark table-bordered border-secondary">
+                <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Author(-s)</th>
+                    <th scope="col">Publish date</th>
+                    <th scope="col">Remaining amount</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                    <c:forEach var="book" items="${books}">
+                        <tr class="table-secondary">
+                            <th scope="row">
+                                <a href="${pageContext.request.contextPath}/book_page.do?bookId=${book.id}">
+                                        ${book.title}
+                                </a>
+                            </th>
+                            <th scope="row">${book.authors}</th>
+                            <th scope="row">${book.publishDate}</th>
+                            <th scope="row">${book.remainingAmount}</th>
+                        <tr>
+                    </c:forEach>
+                </tbody>
+            </table>
         </div>
     </div>
 </section>
