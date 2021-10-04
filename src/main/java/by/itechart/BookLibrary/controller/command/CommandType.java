@@ -1,9 +1,6 @@
 package by.itechart.BookLibrary.controller.command;
 
-import by.itechart.BookLibrary.controller.command.impl.BookPage;
-import by.itechart.BookLibrary.controller.command.impl.Home;
-import by.itechart.BookLibrary.controller.command.impl.LoadBookCover;
-import by.itechart.BookLibrary.controller.command.impl.UploadBookCover;
+import by.itechart.BookLibrary.controller.command.impl.*;
 
 public enum CommandType {
     HOME {{
@@ -11,6 +8,9 @@ public enum CommandType {
     }},
     BOOK_PAGE {{
         this.command = new BookPage();
+    }},
+    ADD_BOOK{{
+        this.command = new AddBook();
     }},
     UPLOAD_BOOK_COVER {{
         this.command = new UploadBookCover();

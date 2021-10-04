@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookDao {
+    boolean add(Book book) throws DaoException;
+    boolean update(Book book) throws DaoException;
     List<Book> loadBookList() throws DaoException;
-    Optional<Book> findById(long bookId) throws DaoException;
-    boolean changeBookCover(long bookId, String path) throws DaoException;
+    Optional<Book> findById(short bookId) throws DaoException;
+    boolean changeBookCover(short bookId, String path) throws DaoException;
+    boolean isTitleAvailable(String title) throws DaoException;
 }

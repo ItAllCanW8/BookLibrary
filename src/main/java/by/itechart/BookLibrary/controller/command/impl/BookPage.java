@@ -22,7 +22,6 @@ public class BookPage implements Command {
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
         BookService service = ServiceFactory.getInstance().getBookService();
 
-//        CommandResult result = new CommandResult(CommandUrl.HOME, CommandResult.Type.FORWARD);
         CommandResult result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
         try {
             Optional<Book> bookOptional = service.findById(Short.parseShort(bookId));

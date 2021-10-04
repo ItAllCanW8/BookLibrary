@@ -18,10 +18,11 @@
             <div class="col-md-6">
                 <div class="img_container">
                     <div class="img-box b1">
-                        <img src="${pageContext.request.contextPath}/load_book_cover.do?bookCover=cdc6acd7-253e-4dcc-954d-5695a14cd824.jpg" alt=""/>
+                        <img src="${pageContext.request.contextPath}/load_book_cover.do?bookCover=${book.cover}"
+                             alt=""/>
                     </div>
 
-                    <label for="coverUpload">Upload book cover </label>
+                    <label for="coverUpload">Upload book cover</label>
                     <form action="${pageContext.request.contextPath}/upload_book_cover.do?bookId=${book.id}"
                           method="post" enctype="multipart/form-data"
                           id="coverUpload">
@@ -33,120 +34,126 @@
 
             <div class="col-md-6">
                 <div class="detail-box">
-                    <div class="heading_container">
-                        <h3>
-                            <label for="inputBookTitle">Title</label>
-                            <input type="text" id="inputBookTitle" name="bookTitle"
-                                       class="form-control field"
-                                       placeholder="3 - 255 characters"
-                                       required
-                                       value="${book.title}" pattern="[А-Яа-я\w\p{Blank}.]{3,255}"/>
-                        </h3>
+                    <c:if test="${book.id == null}">
+                    <form id="editBookForm" method="POST"
+                          action="${pageContext.request.contextPath}/add_book.do">
+                        </c:if>
 
-                        <h5>${book.authors}"</h5>
-                        <h5>${book.publisher}</h5>
-                        <h5>${book.publishDate}</h5>
-                        <h5>${book.genres}</h5>
-                        <h5>${book.pageCount}</h5>
-                        <h5>${book.isbn}</h5>
-                        <h5>${book.totalAmount}</h5>
-                        <h5>${book.remainingAmount}</h5>
-                        <h5>${book.status}</h5>
-                        <hr style="width:100%;text-align:left;margin-left:0">
-                        <p>${book.description}</p>
+                        <c:if test="${book.id != null}">
+                        <form id="editBookForm" method="POST"
+                              action="${pageContext.request.contextPath}/edit_book.do?bookId=${book.id}">
+                            </c:if>
 
-<%--                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal"--%>
-<%--                                data-bs-target="#editProfileModal">--%>
-<%--                            <fmt:message key="button.edit"/>--%>
-<%--                        </button>--%>
-<%--                        <hr style="width:100%;text-align:left;margin-left:0">--%>
-<%--                        <a class="btn btn-secondary"--%>
-<%--                           href="${pageContext.request.contextPath}/view_pdf.do?bookPdf=${book.pdf}" role="button">--%>
-<%--                            <fmt:message key="button.read"/>--%>
-<%--                        </a>--%>
-<%--                        <a class="btn btn-secondary"--%>
-<%--                           href="${pageContext.request.contextPath}/delete_book.do?bookId=${book.id}" role="button">--%>
-<%--                            <fmt:message key="button.delete"/>--%>
-<%--                        </a>--%>
+                            <div class="heading_container">
+                                <h3>
+                                    <label for="inputBookTitle">Title</label>
+                                    <input type="text" id="inputBookTitle" name="bookTitle"
+                                           class="form-control field"
+                                           placeholder="3 - 255 characters"
+                                           required
+                                           value="${book.title}" pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"/>
+                                </h3>
 
-<%--                        <div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog"--%>
-<%--                             aria-labelledby="exampleModalLabel" aria-hidden="true">--%>
-<%--                            <div class="modal-dialog">--%>
-<%--                                <div class="modal-content">--%>
-<%--                                    <div class="modal-header">--%>
-<%--                                        <h4 class="modal-title"><fmt:message key="button.edit"/></h4>--%>
-<%--                                    </div>--%>
+                                <h5>
+                                    <label for="inputBookAuthors">Author(-s)</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookAuthors" name="bookAuthors"
+                                               class="form-control field"
+                                               placeholder="3 - 255 characters"
+                                               required
+                                               value="${book.authors}" pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,255}"/>
+                                    </div>
+                                </h5>
 
-<%--                                    <div class="modal-body">--%>
-<%--                                        <form id="editBookForm" method="POST"--%>
-<%--                                              action="${pageContext.request.contextPath}/edit_book.do?bookId=${book.id}">--%>
-<%--                                            <label for="inputBookTitle"><fmt:message key="books.title"/></label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                                                <input type="text" id="inputBookTitle" name="bookTitle"--%>
-<%--                                                       class="form-control field"--%>
-<%--                                                       placeholder="<fmt:message key="register.inputNamePlaceholder"/>"--%>
-<%--                                                       required--%>
-<%--                                                       value="${book.title}" pattern="[А-Яа-я\w\p{Blank}.]{3,255}"/>--%>
-<%--                                            </div>--%>
+                                <h5>
+                                    <label for="inputBookPublisher">Publisher</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookPublisher" name="bookPublisher"
+                                               class="form-control field"
+                                               placeholder="3 - 45 characters"
+                                               required
+                                               value="${book.publisher}" pattern="[А-Яа-я\w\p{Blank}.,]{3,45}"/>
+                                    </div>
+                                </h5>
 
-<%--                                            <label for="inputBookAuthor"><fmt:message key="books.author"/></label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                                                <input type="text" id="inputBookAuthor" name="bookAuthor"--%>
-<%--                                                       class="form-control field"--%>
-<%--                                                       placeholder="<fmt:message key="register.inputNamePlaceholder"/>"--%>
-<%--                                                       required--%>
-<%--                                                       value="${book.authorPseudo}" pattern="[А-Яа-яa-zA-Z.\s]{3,255}"/>--%>
-<%--                                            </div>--%>
+                                <h5>
+                                    <label for="inputBookPublishDate">Publish date</label>
+                                    <div class="form-group mt-1">
+                                        <input type="date" id="inputBookPublishDate" name="bookPublishDate"
+                                               class="form-control field"
+                                               required
+                                               value="${book.publishDate}"/>
+                                    </div>
+                                </h5>
 
-<%--                                            <label for="inputBookISBN">ISBN-13</label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                                                <input type="text" id="inputBookISBN" name="bookISBN"--%>
-<%--                                                       class="form-control field"--%>
-<%--                                                       placeholder="<fmt:message key="books.isbnPlaceholder"/>" required--%>
-<%--                                                       value="${book.isbn}" pattern="[\d]{13}"/>--%>
-<%--                                            </div>--%>
+                                <h5>
+                                    <label for="inputBookGenres">Genre(-s)</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookGenres" name="bookGenres"
+                                               class="form-control field"
+                                               placeholder="3 - 255 characters"
+                                               required
+                                               value="${book.genres}" pattern="[a-zA-Z.,\p{Blank}]{3,255}"/>
+                                    </div>
+                                </h5>
 
-<%--                                            <label for="inputBookGenre"><fmt:message key="books.genre"/></label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                                                <input type="text" id="inputBookGenre" name="bookGenre"--%>
-<%--                                                       class="form-control field"--%>
-<%--                                                       placeholder="<fmt:message key="register.inputNamePlaceholder"/>"--%>
-<%--                                                       required--%>
-<%--                                                       value="${book.genre}" pattern="[А-Яа-яa-zA-Z]{3,45}"/>--%>
-<%--                                            </div>--%>
+                                <h5>
+                                    <label for="inputBookPageCount">Page count</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookPageCount" name="bookPageCount"
+                                               class="form-control field"
+                                               placeholder="0 - 32767"
+                                               required
+                                               value="${book.pageCount}" pattern="[\d]{1,5}"/>
+                                    </div>
+                                </h5>
 
-<%--                                            <label for="inputBookQuantity"><fmt:message--%>
-<%--                                                    key="books.availableQuantity"/></label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                                                <input type="text" id="inputBookQuantity" name="bookQuantity"--%>
-<%--                                                       class="form-control field"--%>
-<%--                                                       placeholder="<fmt:message key="books.quantityPlaceholder"/>"--%>
-<%--                                                       required--%>
-<%--                                                       value="${book.availableQuantity}" pattern="[\d]{1,4}"/>--%>
-<%--                                            </div>--%>
+                                <h5>
+                                    <label for="inputBookISBN">ISBN-13</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookISBN" name="bookISBN"
+                                               class="form-control field"
+                                               placeholder="978-3-16-148410-0"
+                                               required
+                                               pattern="[\d-]{13,45}"
+                                               value="${book.isbn}"/>
+                                    </div>
+                                </h5>
 
-<%--                                            <label for="inputBookDescription"><fmt:message--%>
-<%--                                                    key="books.shortDescription"/></label>--%>
-<%--                                            <div class="form-group mt-1">--%>
-<%--                            <textarea id="inputBookDescription" name="bookDescription" class="form-control"--%>
-<%--                                      rows="5"--%>
-<%--                                      placeholder="<fmt:message key="register.inputNamePlaceholder"/>"--%>
-<%--                                      required minlength="3" maxlength="1000">${book.shortDescription}</textarea>--%>
-<%--                                            </div>--%>
-<%--                                        </form>--%>
-<%--                                    </div>--%>
+                                <h5>
+                                    <label for="inputBookTotalAmount">Total amount</label>
+                                    <div class="form-group mt-1">
+                                        <input type="text" id="inputBookTotalAmount" name="bookTotalAmount"
+                                               class="form-control field"
+                                               placeholder="0 - 32767"
+                                               required
+                                               value="${book.totalAmount}" pattern="[\d]{1,5}"/>
+                                    </div>
+                                </h5>
 
-<%--                                    <div class="modal-footer">--%>
-<%--                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">--%>
-<%--                                            <fmt:message key="button.close"/>--%>
-<%--                                        </button>--%>
-<%--                                        <button type="submit" class="btn btn-primary" form="editBookForm">--%>
-<%--                                            <fmt:message key="button.save"/></button>--%>
-<%--                                    </div>--%>
-<%--                                </div>--%>
-<%--                            </div>--%>
-<%--                        </div>--%>
-                    </div>
+                                <c:if test="${book.id != null}">
+                                    <h5>
+                                        <label>Status</label>
+                                            ${book.status}
+                                    </h5>
+                                </c:if>
+                            </div>
+
+                            <hr style="width:100%;text-align:left;margin-left:0">
+                            <h5>
+                                <label for="inputBookDescription">Description</label>
+                                <textarea id="inputBookDescription" name="bookDescription" class="form-control"
+                                          rows="5"
+                                          placeholder="up to 1000 characters"
+                                          minlength="3"
+                                          maxlength="1000">${book.description}
+                                </textarea>
+                            </h5>
+
+                            <button type="submit" class="btn btn-outline-success">Save</button>
+                            <a href="${pageContext.request.contextPath}/home.do" class="btn btn-outline-warning"
+                               role="button" aria-pressed="true">Discard</a>
+                        </form>
                 </div>
             </div>
         </div>
