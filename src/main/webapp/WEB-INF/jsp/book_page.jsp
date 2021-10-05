@@ -82,6 +82,7 @@
                                         <input type="date" id="inputBookPublishDate" name="bookPublishDate"
                                                class="form-control field"
                                                required
+                                               max="${currentDate}"
                                                value="${book.publishDate}"/>
                                     </div>
                                 </h5>
@@ -130,24 +131,23 @@
                                                value="${book.totalAmount}" pattern="[\d]{1,5}"/>
                                     </div>
                                 </h5>
-
-                                <c:if test="${book.id != null}">
-                                    <h5>
-                                        <label>Status</label>
-                                            ${book.status}
-                                    </h5>
-                                </c:if>
                             </div>
 
                             <hr style="width:100%;text-align:left;margin-left:0">
+                            <c:if test="${book.id != null}">
+                                <h3>
+                                    <label>Status:</label>
+                                        ${book.status}
+                                </h3>
+                            </c:if>
+
                             <h5>
                                 <label for="inputBookDescription">Description</label>
                                 <textarea id="inputBookDescription" name="bookDescription" class="form-control"
                                           rows="5"
                                           placeholder="up to 1000 characters"
                                           minlength="3"
-                                          maxlength="1000">${book.description}
-                                </textarea>
+                                          maxlength="1000">${book.description}</textarea>
                             </h5>
 
                             <button type="submit" class="btn btn-outline-success">Save</button>

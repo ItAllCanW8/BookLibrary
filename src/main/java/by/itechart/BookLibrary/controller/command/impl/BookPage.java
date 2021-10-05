@@ -14,6 +14,7 @@ import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
 import java.util.Optional;
 
 public class BookPage implements Command {
@@ -28,11 +29,10 @@ public class BookPage implements Command {
             if (bookOptional.isPresent()) {
                 Book book = bookOptional.get();
                 req.setAttribute(RequestParameter.BOOK, book);
+                req.setAttribute(RequestParameter.CURRENT_DATE, LocalDate.now());
                 result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
             }
-        } catch (NumberFormatException e) {
-//            req.setAttribute(JspAttribute.ERROR_INPUT_DATA, JspAttribute.ERROR_INPUT_DATA_MSG);
-        } catch (ServiceException e) {
+        } catch (ServiceException | NumberFormatException e) {
             throw new CommandException(e);
         }
         return result;

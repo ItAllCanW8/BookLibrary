@@ -19,6 +19,19 @@ public class EditBook implements Command {
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
 
+        BookService service = ServiceFactory.getInstance().getBookService();
+        CommandResult result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.REDIRECT);
+        try {
+            if (!service.update(Short.parseShort(bookId), receiveBookFields(req))) {
+                result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.FORWARD);
+            }
+        } catch (ServiceException | NumberFormatException e) {
+            throw new CommandException(e);
+        }
+        return result;
+    }
+
+    static Map<String, String> receiveBookFields(HttpServletRequest req) {
         String newTitle = req.getParameter(RequestParameter.BOOK_TITLE);
         String newAuthors = req.getParameter(RequestParameter.BOOK_AUTHORS);
         String newPublisher = req.getParameter(RequestParameter.BOOK_PUBLISHER);
@@ -40,18 +53,6 @@ public class EditBook implements Command {
         fields.put(RequestParameter.BOOK_TOTAL_AMOUNT, newTotalAmount);
         fields.put(RequestParameter.BOOK_DESCRIPTION, newDescription);
 
-        BookService service = ServiceFactory.getInstance().getBookService();
-        CommandResult result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.REDIRECT);
-        try {
-            if (!service.update(Short.parseShort(bookId), fields)) {
-                result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.FORWARD);
-            }
-        } catch (NumberFormatException e) {
-//            req.setAttribute(JspAttribute.ERROR_INPUT_DATA, JspAttribute.ERROR_INPUT_DATA_MSG);
-            result = new CommandResult(CommandUrl.LOAD_BOOK_INFO + bookId, CommandResult.Type.FORWARD);
-        } catch (ServiceException e) {
-            throw new CommandException(e);
-        }
-        return result;
+        return fields;
     }
 }

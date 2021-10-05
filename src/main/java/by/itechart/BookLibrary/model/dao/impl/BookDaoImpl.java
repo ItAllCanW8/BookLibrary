@@ -16,7 +16,8 @@ public class BookDaoImpl implements BookDao {
             "?, ?, ? );";
 
     public static final String UPDATE = "UPDATE books SET title = ?, authors = ?, publisher = ?, publish_date = ?, " +
-            "genres = ?, page_count = ?, isbn = ?, total_amount = ?, description = ? WHERE book_id = ?;";
+            "genres = ?, page_count = ?, isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ?" +
+            " WHERE book_id = ?;";
 
     private static final String SELECT_LIST = "SELECT book_id, title, authors, publish_date, remaining_amount " +
             "FROM books ORDER BY remaining_amount ASC;";
@@ -70,14 +71,20 @@ public class BookDaoImpl implements BookDao {
     public boolean update(Book book) throws DaoException {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPDATE)) {
-            statement.setString(1, book.getCover());
+            statement.setString(1, book.getTitle());
+            statement.setString(2, book.getAuthors());
+            statement.setString(3, book.getPublisher());
+            statement.setString(4, book.getPublishDate());
+            statement.setString(5, book.getGenres());
+            statement.setShort(6, book.getPageCount());
+            statement.setString(7, book.getIsbn());
+            statement.setString(8, book.getDescription());
+            statement.setShort(9, book.getTotalAmount());
+            statement.setShort(10, book.getRemainingAmount());
+            statement.setString(11, book.getStatus());
+            statement.setShort(12, book.getId());
 
-            setBookFields(book, statement);
-            statement.setLong(7, book.getId());
-
-            statement.execute();
-
-            return statement.getUpdateCount() == 1;
+            return statement.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new DaoException("Error updating book.", e);
         }

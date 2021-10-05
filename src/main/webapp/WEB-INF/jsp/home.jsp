@@ -75,12 +75,10 @@
                 Book List
             </h3>
 
-<%--            <button type="button" class="btn btn-secondary" style="width: 40%">--%>
-<%--                Add Book--%>
-<%--            </button>--%>
-
             <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-success"
                role="button" style="width: 40%" aria-pressed="true">Add book</a>
+            <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
+               role="button" style="width: 40%; margin-top: 1%" aria-pressed="true">Delete Books</a>
 
             <hr style="width:100%;text-align:left;margin-left:0">
         </div>

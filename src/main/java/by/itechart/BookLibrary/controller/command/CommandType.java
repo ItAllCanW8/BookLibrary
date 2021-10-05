@@ -12,6 +12,9 @@ public enum CommandType {
     ADD_BOOK{{
         this.command = new AddBook();
     }},
+    EDIT_BOOK{{
+        this.command = new EditBook();
+    }},
     UPLOAD_BOOK_COVER {{
         this.command = new UploadBookCover();
     }},

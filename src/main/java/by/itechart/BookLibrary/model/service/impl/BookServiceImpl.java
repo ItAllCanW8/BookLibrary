@@ -11,6 +11,7 @@ import by.itechart.BookLibrary.model.entity.factory.impl.BookFactory;
 import by.itechart.BookLibrary.model.service.BookService;
 import by.itechart.BookLibrary.model.service.validation.BookValidator;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,17 +87,38 @@ public class BookServiceImpl implements BookService {
 
     private void updateBookInfo(Book book, Map<String, String> fields) {
         String newTitle = fields.get(RequestParameter.BOOK_TITLE);
-        String newAuthor = fields.get(RequestParameter.BOOK_AUTHOR);
+        String newAuthors = fields.get(RequestParameter.BOOK_AUTHORS);
+        String newPublisher = fields.get(RequestParameter.BOOK_PUBLISHER);
+        String newPublishDate = fields.get(RequestParameter.BOOK_PUBLISH_DATE);
+        String newGenres = fields.get(RequestParameter.BOOK_GENRES);
+        short newPageCount = Short.parseShort(fields.get(RequestParameter.BOOK_PAGE_COUNT));
         String newIsbn = fields.get(RequestParameter.BOOK_ISBN);
-        short newQuantity = Short.parseShort(fields.get(RequestParameter.BOOK_QUANTITY));
-        String newGenre = fields.get(RequestParameter.BOOK_GENRE);
+        short newTotalAmount = Short.parseShort(fields.get(RequestParameter.BOOK_TOTAL_AMOUNT));
         String newDescription = fields.get(RequestParameter.BOOK_DESCRIPTION);
 
+        System.out.println(newDescription);
+
+        short remainingAmount  = book.getRemainingAmount();
+        String statusPrefix = remainingAmount > 0 ? "Available (" : "Unavailable (";
+
+        if(remainingAmount > newTotalAmount){
+            book.setRemainingAmount(newTotalAmount);
+        } else if(remainingAmount < newTotalAmount){
+            short oldTotalAmount = book.getTotalAmount();
+            book.setRemainingAmount((short) (remainingAmount + (newTotalAmount - oldTotalAmount)));
+        }
+
+        String newStatus = statusPrefix + book.getRemainingAmount() + " out of " + newTotalAmount + ")";
+
         book.setTitle(newTitle);
-        book.setAuthorPseudo(newAuthor);
+        book.setAuthors(newAuthors);
+        book.setPublisher(newPublisher);
+        book.setPublishDate(newPublishDate);
+        book.setGenres(newGenres);
+        book.setPageCount(newPageCount);
         book.setIsbn(newIsbn);
-        book.setAvailableQuantity(newQuantity);
-        book.setGenre(newGenre);
-        book.setShortDescription(newDescription);
+        book.setTotalAmount(newTotalAmount);
+        book.setDescription(newDescription);
+        book.setStatus(newStatus);
     }
 }
