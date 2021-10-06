@@ -10,7 +10,8 @@ import java.util.Optional;
 public interface BookService {
     boolean add(Map<String, String> fields) throws ServiceException;
     boolean update(short bookId, Map<String, String> newFields) throws ServiceException;
-    List<Book> loadBookList() throws ServiceException;
+    List<Book> loadBookList(int offset, int recordsPerPage) throws ServiceException;
+    int getBookCount() throws ServiceException;
     Optional<Book> findById(short bookId) throws ServiceException;
     boolean changeBookCover(short bookId, String path) throws ServiceException;
 }

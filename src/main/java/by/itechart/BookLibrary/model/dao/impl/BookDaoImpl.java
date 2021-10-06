@@ -20,7 +20,9 @@ public class BookDaoImpl implements BookDao {
             " WHERE book_id = ?;";
 
     private static final String SELECT_LIST = "SELECT book_id, title, authors, publish_date, remaining_amount " +
-            "FROM books ORDER BY remaining_amount ASC;";
+            "FROM books ORDER BY remaining_amount ASC LIMIT ";
+
+    private static final String SELECT_COUNT = "SELECT COUNT(*) from books;";
 
     private static final String FIND_BY_ID = "SELECT * FROM books WHERE book_id = ?;";
 
@@ -91,12 +93,12 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public List<Book> loadBookList() throws DaoException {
+    public List<Book> loadBookList(int offset, int recordsPerPage) throws DaoException {
         List<Book> books = new ArrayList<>();
 
         try(Connection connection = DataSource.getConnection();
             Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery(SELECT_LIST);
+            ResultSet resultSet = statement.executeQuery(SELECT_LIST + offset + "," + recordsPerPage);
 
             while (resultSet.next()) {
                 books.add(createBookFromResultSet(resultSet, false));
@@ -107,6 +109,18 @@ public class BookDaoImpl implements BookDao {
         }
 
         return books;
+    }
+
+    @Override
+    public int getBookCount() throws DaoException {
+        try(Connection connection = DataSource.getConnection();
+            Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(SELECT_COUNT);
+
+            return (resultSet.next() ? resultSet.getInt(1) : 0);
+        } catch (SQLException | NumberFormatException e) {
+            throw new DaoException("Error getting books count.", e);
+        }
     }
 
     @Override

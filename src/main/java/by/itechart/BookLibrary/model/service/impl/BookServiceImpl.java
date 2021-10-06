@@ -11,7 +11,6 @@ import by.itechart.BookLibrary.model.entity.factory.impl.BookFactory;
 import by.itechart.BookLibrary.model.service.BookService;
 import by.itechart.BookLibrary.model.service.validation.BookValidator;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,9 +58,18 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> loadBookList() throws ServiceException {
+    public List<Book> loadBookList(int offset, int recordsPerPage) throws ServiceException {
         try {
-            return bookDao.loadBookList();
+            return bookDao.loadBookList(offset, recordsPerPage);
+        } catch (DaoException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public int getBookCount() throws ServiceException {
+        try {
+            return bookDao.getBookCount();
         } catch (DaoException e) {
             throw new ServiceException(e);
         }

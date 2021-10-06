@@ -15,4 +15,8 @@ public class RequestParameter {
     public static final String BOOK_DESCRIPTION = "bookDescription";
     public static final String BOOK_COVER = "bookCover";
     public static final String CURRENT_DATE = "currentDate";
+    public static final String PAGE = "page";
+    public static final String NUMBER_OF_PAGES = "numberOfPages";
+    public static final String CURRENT_PAGE = "currentPage";
+    public static final String RECORDS_PER_PAGE = "recordsPerPage";
 }

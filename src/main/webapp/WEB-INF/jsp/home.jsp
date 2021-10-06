@@ -75,12 +75,35 @@
                 Book List
             </h3>
 
-            <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-success"
-               role="button" style="width: 40%" aria-pressed="true">Add book</a>
-            <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
-               role="button" style="width: 40%; margin-top: 1%" aria-pressed="true">Delete Books</a>
-
             <hr style="width:100%;text-align:left;margin-left:0">
+
+            <div class="row align-items-start" style="width:100%;">
+                <div style="display: flex;justify-content: center">
+                    <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-success"
+                       role="button" style="width: 40%" aria-pressed="true">Add book</a>
+                </div>
+
+                <div style="display: flex;justify-content: center">
+                    <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
+                       role="button" style="width: 40%; margin-top: 1%" aria-pressed="true">Delete Books</a>
+                </div>
+
+                <div class="col-2" style="display: flex;justify-content: center">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="recordsPerPage"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">Records per Page
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recordsPerPage">
+                            <li><a class="dropdown-item"
+                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=1">10
+                            </a></li>
+                            <li><a class="dropdown-item"
+                                   href="${pageContext.request.contextPath}/sort_records.do?recordsPerPage=2">20</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="event_container">
@@ -95,19 +118,41 @@
                 </thead>
 
                 <tbody>
-                    <c:forEach var="book" items="${books}">
-                        <tr class="table-secondary">
-                            <th scope="row">
-                                <a href="${pageContext.request.contextPath}/book_page.do?bookId=${book.id}">
-                                        ${book.title}
-                                </a>
-                            </th>
-                            <th scope="row">${book.authors}</th>
-                            <th scope="row">${book.publishDate}</th>
-                            <th scope="row">${book.remainingAmount}</th>
-                        <tr>
+                <c:forEach var="book" items="${books}">
+                <tr class="table-secondary">
+                    <th scope="row">
+                        <a href="${pageContext.request.contextPath}/book_page.do?bookId=${book.id}">
+                                ${book.title}
+                        </a>
+                    </th>
+                    <th scope="row">${book.authors}</th>
+                    <th scope="row">${book.publishDate}</th>
+                    <th scope="row">${book.remainingAmount}</th>
+                <tr>
                     </c:forEach>
                 </tbody>
+            </table>
+
+            <c:if test="${currentPage != 1}">
+                <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}">Previous</a></th>
+            </c:if>
+            <c:if test="${currentPage lt numberOfPages}">
+                <th><a href="home.do?page=${currentPage + 1}&recordsPerPage=${recordsPerPage}">Next</a></th>
+            </c:if>
+
+            <table class="table-bordered">
+                <tr>
+                    <c:forEach begin="1" end="${numberOfPages}" var="i">
+                        <c:choose>
+                            <c:when test="${currentPage eq i}">
+                                <th>${i}</th>
+                            </c:when>
+                            <c:otherwise>
+                                <th><a href="home.do?page=${i}&recordsPerPage=${recordsPerPage}">${i}</a></th>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </tr>
             </table>
         </div>
     </div>
