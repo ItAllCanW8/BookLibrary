@@ -58,9 +58,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> loadBookList(int offset, int recordsPerPage) throws ServiceException {
+    public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws ServiceException {
         try {
-            return bookDao.loadBookList(offset, recordsPerPage);
+            return bookDao.loadBookList(offset, recordsPerPage, filterMode);
         } catch (DaoException e) {
             throw new ServiceException(e);
         }

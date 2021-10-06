@@ -13,6 +13,7 @@ import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 public class Home implements Command {
     @Override
@@ -26,15 +27,24 @@ public class Home implements Command {
             int recordsPerPage = req.getParameter(RequestParameter.RECORDS_PER_PAGE) != null ?
                     Integer.parseInt(req.getParameter(RequestParameter.RECORDS_PER_PAGE)) : 10;
 
+            Optional<String> filterMode = req.getParameter(RequestParameter.RECORDS_PER_PAGE) != null ?
+                    Optional.of(req.getParameter("filter")) : Optional.empty();
+
+//            System.out.println(filterMode.get());
+
             int bookCount = service.getBookCount();
             int numberOfPages = (int) Math.ceil(bookCount * 1.0 / recordsPerPage);
 
-            List<Book> books = service.loadBookList((page - 1) * recordsPerPage, recordsPerPage);
+            List<Book> books = service.loadBookList((page - 1) * recordsPerPage, recordsPerPage, filterMode);
             if (books.size() > 0) {
                 req.setAttribute(RequestParameter.BOOKS, books);
                 req.setAttribute(RequestParameter.NUMBER_OF_PAGES, numberOfPages);
                 req.setAttribute(RequestParameter.CURRENT_PAGE, page);
                 req.setAttribute(RequestParameter.RECORDS_PER_PAGE, recordsPerPage);
+
+                if(filterMode.isPresent()){
+                    req.setAttribute("filter", filterMode.get());
+                }
             }
         } catch (ServiceException e) {
             throw new CommandException(e);

@@ -21,9 +21,7 @@
                             <div class="col">
                                 <div class="detail-box">
                                     <div>
-                                        <h1>
-                                            L I B R A R Y
-                                        </h1>
+                                        <h1>L I B R A R Y</h1>
                                     </div>
                                 </div>
                             </div>
@@ -36,9 +34,7 @@
                             <div class="col">
                                 <div class="detail-box">
                                     <div>
-                                        <h1>
-                                            E D U C A T I O N
-                                        </h1>
+                                        <h1>E D U C A T I O N</h1>
                                     </div>
                                 </div>
                             </div>
@@ -51,9 +47,7 @@
                             <div class="col">
                                 <div class="detail-box">
                                     <div>
-                                        <h1>
-                                            L E I S U R E
-                                        </h1>
+                                        <h1>L E I S U R E</h1>
                                     </div>
                                 </div>
                             </div>
@@ -83,23 +77,42 @@
                        role="button" style="width: 40%" aria-pressed="true">Add book</a>
                 </div>
 
+<%--                <button type="button" class="btn btn-secondary" data-bs-toggle="modal"--%>
+<%--                        data-bs-target="#editProfileModal">--%>
+<%--                    <fmt:message key="button.edit"/>--%>
+<%--                </button>--%>
+
                 <div style="display: flex;justify-content: center">
                     <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
-                       role="button" style="width: 40%; margin-top: 1%" aria-pressed="true">Delete Books</a>
+                       role="button" style="width: 40%; margin-top: 1%; margin-bottom: 1%" aria-pressed="true">Delete Books</a>
                 </div>
 
                 <div class="col-2" style="display: flex;justify-content: center">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="recordsPerPage"
                                 data-bs-toggle="dropdown"
-                                aria-expanded="false">Records per Page
-                        </button>
+                                aria-expanded="false">Records per Page</button>
                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recordsPerPage">
                             <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=1">10
-                            </a></li>
+                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=1&filter=${filterMode}">10</a></li>
                             <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/sort_records.do?recordsPerPage=2">20</a></li>
+                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=2&filter=${filterMode}">20</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-2" style="display: flex;justify-content: center">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="filterByAvailability"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">Filter by availability</button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="filterByAvailability">
+                            <li><a class="dropdown-item"
+                                   href="${pageContext.request.contextPath}/home.do?filter=available&recordsPerPage=${recordsPerPage}&page=${currentPage}">Available</a></li>
+                            <li><a class="dropdown-item"
+                                   href="${pageContext.request.contextPath}/home.do?filter=unavailable&recordsPerPage=${recordsPerPage}&page=${currentPage}">Unavailable</a></li>
+                            <li><a class="dropdown-item"
+                                   href="${pageContext.request.contextPath}/home.do">All</a></li>
                         </ul>
                     </div>
                 </div>
@@ -134,10 +147,10 @@
             </table>
 
             <c:if test="${currentPage != 1}">
-                <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}">Previous</a></th>
+                <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">Previous</a></th>
             </c:if>
             <c:if test="${currentPage lt numberOfPages}">
-                <th><a href="home.do?page=${currentPage + 1}&recordsPerPage=${recordsPerPage}">Next</a></th>
+                <th><a href="home.do?page=${currentPage + 1}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">Next</a></th>
             </c:if>
 
             <table class="table-bordered">
@@ -148,7 +161,7 @@
                                 <th>${i}</th>
                             </c:when>
                             <c:otherwise>
-                                <th><a href="home.do?page=${i}&recordsPerPage=${recordsPerPage}">${i}</a></th>
+                                <th><a href="home.do?page=${i}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">${i}</a></th>
                             </c:otherwise>
                         </c:choose>
                     </c:forEach>

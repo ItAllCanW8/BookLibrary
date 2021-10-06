@@ -20,7 +20,9 @@ public class BookDaoImpl implements BookDao {
             " WHERE book_id = ?;";
 
     private static final String SELECT_LIST = "SELECT book_id, title, authors, publish_date, remaining_amount " +
-            "FROM books ORDER BY remaining_amount ASC LIMIT ";
+            "FROM books ";
+
+//    ORDER BY remaining_amount ASC LIMIT
 
     private static final String SELECT_COUNT = "SELECT COUNT(*) from books;";
 
@@ -93,12 +95,19 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public List<Book> loadBookList(int offset, int recordsPerPage) throws DaoException {
+    public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException {
         List<Book> books = new ArrayList<>();
 
         try(Connection connection = DataSource.getConnection();
             Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery(SELECT_LIST + offset + "," + recordsPerPage);
+            String query = SELECT_LIST;
+
+            if(filterMode.isPresent()){
+                query += "WHERE status LIKE '" + filterMode.get() + "%' ";
+            }
+
+            query += "ORDER BY remaining_amount ASC LIMIT ";
+            ResultSet resultSet = statement.executeQuery(query + offset + "," + recordsPerPage);
 
             while (resultSet.next()) {
                 books.add(createBookFromResultSet(resultSet, false));

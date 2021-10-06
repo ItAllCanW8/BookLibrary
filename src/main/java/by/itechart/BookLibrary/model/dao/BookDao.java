@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface BookDao {
     boolean add(Book book) throws DaoException;
     boolean update(Book book) throws DaoException;
-    List<Book> loadBookList(int offset, int recordsPerPage) throws DaoException;
+    List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException;
     int getBookCount() throws DaoException;
     Optional<Book> findById(short bookId) throws DaoException;
     boolean changeBookCover(short bookId, String path) throws DaoException;
