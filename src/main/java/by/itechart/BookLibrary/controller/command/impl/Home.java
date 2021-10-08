@@ -28,9 +28,7 @@ public class Home implements Command {
                     Integer.parseInt(req.getParameter(RequestParameter.RECORDS_PER_PAGE)) : 10;
 
             Optional<String> filterMode = req.getParameter(RequestParameter.RECORDS_PER_PAGE) != null ?
-                    Optional.of(req.getParameter("filter")) : Optional.empty();
-
-//            System.out.println(filterMode.get());
+                    Optional.of(req.getParameter(RequestParameter.FILTER_MODE)) : Optional.empty();
 
             int bookCount = service.getBookCount();
             int numberOfPages = (int) Math.ceil(bookCount * 1.0 / recordsPerPage);
@@ -43,7 +41,7 @@ public class Home implements Command {
                 req.setAttribute(RequestParameter.RECORDS_PER_PAGE, recordsPerPage);
 
                 if(filterMode.isPresent()){
-                    req.setAttribute("filter", filterMode.get());
+                    req.setAttribute(RequestParameter.FILTER_MODE, filterMode.get());
                 }
             }
         } catch (ServiceException e) {

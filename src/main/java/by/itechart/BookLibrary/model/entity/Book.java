@@ -1,15 +1,16 @@
 package by.itechart.BookLibrary.model.entity;
 
 import java.io.Serializable;
+import java.util.Set;
 
 public class Book implements Serializable {
     private short id;
     private String cover;
     private String title;
-    private String authors;
+    private Set<String> authors;
     private String publisher;
     private String publishDate;
-    private String genres;
+    private Set<String> genres;
     private short pageCount;
     private String isbn;
     private String description;
@@ -21,7 +22,7 @@ public class Book implements Serializable {
 
     public Book(short id){this.id = id;}
 
-    public Book(String cover, String title, String authors, String publisher, String publishDate, String genres,
+    public Book(String cover, String title, Set<String> authors, String publisher, String publishDate, Set<String> genres,
                 short pageCount, String isbn, String description, short totalAmount, short remainingAmount,
                 String status) {
         this.cover = cover;
@@ -38,7 +39,7 @@ public class Book implements Serializable {
         this.status = status;
     }
 
-    public Book(short id, String title, String authors, String publishDate, short remainingAmount) {
+    public Book(short id, String title, Set<String> authors, String publishDate, short remainingAmount) {
         this(id);
         this.title = title;
         this.authors = authors;
@@ -66,11 +67,11 @@ public class Book implements Serializable {
         this.title = title;
     }
 
-    public String getAuthors() {
+    public Set<String> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(String authors) {
+    public void setAuthors(Set<String> authors) {
         this.authors = authors;
     }
 
@@ -90,11 +91,11 @@ public class Book implements Serializable {
         this.publishDate = publishDate;
     }
 
-    public String getGenres() {
+    public Set<String> getGenres() {
         return genres;
     }
 
-    public void setGenres(String genres) {
+    public void setGenres(Set<String> genres) {
         this.genres = genres;
     }
 
@@ -153,33 +154,19 @@ public class Book implements Serializable {
 
         Book book = (Book) o;
 
-        if (id != book.id) return false;
         if (pageCount != book.pageCount) return false;
-        if (totalAmount != book.totalAmount) return false;
-        if (remainingAmount != book.remainingAmount) return false;
         if (!title.equals(book.title)) return false;
         if (!authors.equals(book.authors)) return false;
         if (!publisher.equals(book.publisher)) return false;
         if (!publishDate.equals(book.publishDate)) return false;
         if (!genres.equals(book.genres)) return false;
         if (!isbn.equals(book.isbn)) return false;
-        return status.equals(book.status);
+        return description != null ? description.equals(book.description) : book.description == null;
     }
 
     @Override
     public int hashCode() {
-        int result = id;
-        result = 31 * result + title.hashCode();
-        result = 31 * result + authors.hashCode();
-        result = 31 * result + publisher.hashCode();
-        result = 31 * result + publishDate.hashCode();
-        result = 31 * result + genres.hashCode();
-        result = 31 * result + (int) pageCount;
-        result = 31 * result + isbn.hashCode();
-        result = 31 * result + (int) totalAmount;
-        result = 31 * result + (int) remainingAmount;
-        result = 31 * result + status.hashCode();
-        return result;
+        return isbn.hashCode();
     }
 
     @Override
@@ -188,10 +175,10 @@ public class Book implements Serializable {
                 "id=" + id +
                 ", cover='" + cover + '\'' +
                 ", title='" + title + '\'' +
-                ", authors='" + authors + '\'' +
+                ", authors=" + authors +
                 ", publisher='" + publisher + '\'' +
                 ", publishDate='" + publishDate + '\'' +
-                ", genres='" + genres + '\'' +
+                ", genres=" + genres +
                 ", pageCount=" + pageCount +
                 ", isbn='" + isbn + '\'' +
                 ", description='" + description + '\'' +

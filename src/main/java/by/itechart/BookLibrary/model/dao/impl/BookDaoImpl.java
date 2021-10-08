@@ -6,27 +6,29 @@ import by.itechart.BookLibrary.model.dao.BookDao;
 import by.itechart.BookLibrary.model.entity.Book;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class BookDaoImpl implements BookDao {
-    public static final String INSERT = "INSERT INTO books(cover, title, authors, publisher, publish_date, genres," +
-            " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?," +
+    public static final String INSERT = "INSERT INTO books(cover, title, publisher, publish_date," +
+            " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?," +
+            "?, ?, ? );";
+
+    public static final String INSERT_AUTHORS = "INSERT INTO authors(book_id_fk, author) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
 
     public static final String UPDATE = "UPDATE books SET title = ?, authors = ?, publisher = ?, publish_date = ?, " +
             "genres = ?, page_count = ?, isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ?" +
             " WHERE book_id = ?;";
 
-    private static final String SELECT_LIST = "SELECT book_id, title, authors, publish_date, remaining_amount " +
-            "FROM books ";
+    private static final String SELECT_LIST = "SELECT book_id, title, author, publish_date, remaining_amount " +
+            "FROM books JOIN authors ON books.book_id = authors.book_id_fk ";
 
 //    ORDER BY remaining_amount ASC LIMIT
 
     private static final String SELECT_COUNT = "SELECT COUNT(*) from books;";
 
-    private static final String FIND_BY_ID = "SELECT * FROM books WHERE book_id = ?;";
+    private static final String FIND_BY_ID = "SELECT * FROM books JOIN authors ON books.book_id = authors.book_id_fk" +
+            " JOIN genres ON books.book_id = genres.book_id_fk WHERE book_id = ?;";
 
     public static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
 
@@ -35,7 +37,7 @@ public class BookDaoImpl implements BookDao {
     private static final String bookIdCol = "book_id";
     private static final String bookCoverCol = "cover";
     private static final String bookTitleCol = "title";
-    private static final String bookAuthorsCol = "authors";
+    private static final String bookAuthorCol = "author";
     private static final String bookPublisherCol = "publisher";
     private static final String bookPublishDateCol = "publish_date";
     private static final String bookGenresCol = "genres";
@@ -46,7 +48,8 @@ public class BookDaoImpl implements BookDao {
     private static final String bookRemainingAmountCol = "remaining_amount";
     private static final String bookStatusCol = "status";
 
-    BookDaoImpl(){}
+    BookDaoImpl() {
+    }
 
     @Override
     public boolean add(Book book) throws DaoException {
@@ -54,16 +57,18 @@ public class BookDaoImpl implements BookDao {
              PreparedStatement statement = connection.prepareStatement(INSERT)) {
             statement.setString(1, book.getCover());
             statement.setString(2, book.getTitle());
-            statement.setString(3, book.getAuthors());
-            statement.setString(4, book.getPublisher());
-            statement.setString(5, book.getPublishDate());
-            statement.setString(6, book.getGenres());
-            statement.setShort(7, book.getPageCount());
-            statement.setString(8, book.getIsbn());
-            statement.setString(9, book.getDescription());
-            statement.setShort(10, book.getTotalAmount());
-            statement.setShort(11, book.getRemainingAmount());
-            statement.setString(12, book.getStatus());
+            statement.setString(3, book.getPublisher());
+            statement.setString(4, book.getPublishDate());
+            statement.setShort(5, book.getPageCount());
+            statement.setString(6, book.getIsbn());
+            statement.setString(7, book.getDescription());
+            statement.setShort(8, book.getTotalAmount());
+            statement.setShort(9, book.getRemainingAmount());
+            statement.setString(10, book.getStatus());
+
+            if(statement.executeUpdate() == 1){
+//                statement = connection.prepareStatement("");
+            }
 
             return statement.executeUpdate() == 1;
         } catch (SQLException e) {
@@ -76,10 +81,10 @@ public class BookDaoImpl implements BookDao {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPDATE)) {
             statement.setString(1, book.getTitle());
-            statement.setString(2, book.getAuthors());
+//            statement.setString(2, book.getAuthors());
             statement.setString(3, book.getPublisher());
             statement.setString(4, book.getPublishDate());
-            statement.setString(5, book.getGenres());
+//            statement.setString(5, book.getGenres());
             statement.setShort(6, book.getPageCount());
             statement.setString(7, book.getIsbn());
             statement.setString(8, book.getDescription());
@@ -96,23 +101,20 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException {
-        List<Book> books = new ArrayList<>();
+        List<Book> books;
 
-        try(Connection connection = DataSource.getConnection();
-            Statement statement = connection.createStatement()) {
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
             String query = SELECT_LIST;
 
-            if(filterMode.isPresent()){
+            if (filterMode.isPresent()) {
                 query += "WHERE status LIKE '" + filterMode.get() + "%' ";
             }
 
             query += "ORDER BY remaining_amount ASC LIMIT ";
             ResultSet resultSet = statement.executeQuery(query + offset + "," + recordsPerPage);
 
-            while (resultSet.next()) {
-                books.add(createBookFromResultSet(resultSet, false));
-            }
-
+            books = createBooksFromRS(resultSet);
         } catch (SQLException e) {
             throw new DaoException("Error loading books.", e);
         }
@@ -120,10 +122,42 @@ public class BookDaoImpl implements BookDao {
         return books;
     }
 
+    private List<Book> createBooksFromRS(ResultSet rs) {
+        List<Book> books = new ArrayList<>();
+
+        try {
+            if (rs.next()) {
+                while (!rs.isAfterLast()) {
+                    short bookId = rs.getShort(bookIdCol);
+                    String title = rs.getString(bookTitleCol);
+                    String publishDate = rs.getString(bookPublishDateCol);
+                    short remainingAmount = rs.getShort(bookRemainingAmountCol);
+
+                    Set<String> authors = new HashSet<>();
+
+                    do {
+                        String author = rs.getString(bookAuthorCol);
+
+                        if(author != null){
+                            authors.add(author);
+                        }
+                    } while (rs.next() && rs.getShort(bookIdCol) == bookId);
+
+                    Book book = new Book(bookId, title, authors, publishDate, remainingAmount);
+                    books.add(book);
+                }
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return books;
+    }
+
     @Override
     public int getBookCount() throws DaoException {
-        try(Connection connection = DataSource.getConnection();
-            Statement statement = connection.createStatement()) {
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(SELECT_COUNT);
 
             return (resultSet.next() ? resultSet.getInt(1) : 0);
@@ -175,16 +209,21 @@ public class BookDaoImpl implements BookDao {
     private Book createBookFromResultSet(ResultSet resultSet, boolean areAllFieldsPresent) throws SQLException {
         short id = resultSet.getShort(bookIdCol);
         String title = resultSet.getString(bookTitleCol);
-        String authors = resultSet.getString(bookAuthorsCol);
+        String author = resultSet.getString(bookAuthorCol);
+        Set<String> authors = new HashSet<>();
+        authors.add(author);
+
         String publishDate = resultSet.getString(bookPublishDateCol);
         short remainingAmount = resultSet.getShort(bookRemainingAmountCol);
 
         Book book = new Book(id, title, authors, publishDate, remainingAmount);
 
-        if(areAllFieldsPresent){
+        System.out.println(book);
+
+        if (areAllFieldsPresent) {
             book.setCover(resultSet.getString(bookCoverCol));
             book.setPublisher(resultSet.getString(bookPublisherCol));
-            book.setGenres(resultSet.getString(bookGenresCol));
+//            book.setGenres(resultSet.getString(bookGenresCol));
             book.setPageCount(Short.parseShort(resultSet.getString(bookPageCountCol)));
             book.setIsbn(resultSet.getString(bookIsbnCol));
             book.setDescription(resultSet.getString(bookDescCol));

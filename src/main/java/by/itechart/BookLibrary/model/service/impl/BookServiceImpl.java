@@ -119,10 +119,10 @@ public class BookServiceImpl implements BookService {
         String newStatus = statusPrefix + book.getRemainingAmount() + " out of " + newTotalAmount + ")";
 
         book.setTitle(newTitle);
-        book.setAuthors(newAuthors);
+//        book.setAuthors(newAuthors);
         book.setPublisher(newPublisher);
         book.setPublishDate(newPublishDate);
-        book.setGenres(newGenres);
+//        book.setGenres(newGenres);
         book.setPageCount(newPageCount);
         book.setIsbn(newIsbn);
         book.setTotalAmount(newTotalAmount);
