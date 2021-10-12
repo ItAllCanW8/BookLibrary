@@ -22,15 +22,13 @@ public class Book implements Serializable {
 
     public Book(short id){this.id = id;}
 
-    public Book(String cover, String title, Set<String> authors, String publisher, String publishDate, Set<String> genres,
-                short pageCount, String isbn, String description, short totalAmount, short remainingAmount,
-                String status) {
+    public Book(short id, String cover, String title, String publisher, String publishDate, short pageCount, String isbn,
+                String description, short totalAmount, short remainingAmount, String status) {
+        this.id = id;
         this.cover = cover;
         this.title = title;
-        this.authors = authors;
         this.publisher = publisher;
         this.publishDate = publishDate;
-        this.genres = genres;
         this.pageCount = pageCount;
         this.isbn = isbn;
         this.description = description;
