@@ -9,6 +9,9 @@ import java.sql.*;
 import java.util.*;
 
 public class BookDaoImpl implements BookDao {
+//    SELECT DISTINCT title, genre FROM book_genres JOIN books ON book_id_fk = book_id JOIN genres ON genre_id_fk = genre_id
+//SELECT DISTINCT title, author FROM book_authors JOIN books ON book_id_fk = book_id JOIN authors ON author_id_fk = author_id;
+
     public static final String INSERT = "INSERT INTO books(cover, title, publisher, publish_date," +
             " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
@@ -22,8 +25,6 @@ public class BookDaoImpl implements BookDao {
 
     private static final String SELECT_LIST = "SELECT book_id, title, author, publish_date, remaining_amount " +
             "FROM books JOIN authors ON books.book_id = authors.book_id_fk ";
-
-//    ORDER BY remaining_amount ASC LIMIT
 
     private static final String SELECT_COUNT = "SELECT COUNT(*) from books;";
 
@@ -40,7 +41,7 @@ public class BookDaoImpl implements BookDao {
     private static final String bookAuthorCol = "author";
     private static final String bookPublisherCol = "publisher";
     private static final String bookPublishDateCol = "publish_date";
-    private static final String bookGenresCol = "genres";
+    private static final String bookGenreCol = "genre";
     private static final String bookPageCountCol = "page_count";
     private static final String bookIsbnCol = "isbn";
     private static final String bookDescCol = "description";
@@ -66,7 +67,7 @@ public class BookDaoImpl implements BookDao {
             statement.setShort(9, book.getRemainingAmount());
             statement.setString(10, book.getStatus());
 
-            if(statement.executeUpdate() == 1){
+            if (statement.executeUpdate() == 1) {
 //                statement = connection.prepareStatement("");
             }
 
@@ -122,38 +123,6 @@ public class BookDaoImpl implements BookDao {
         return books;
     }
 
-    private List<Book> createBooksFromRS(ResultSet rs) {
-        List<Book> books = new ArrayList<>();
-
-        try {
-            if (rs.next()) {
-                while (!rs.isAfterLast()) {
-                    short bookId = rs.getShort(bookIdCol);
-                    String title = rs.getString(bookTitleCol);
-                    String publishDate = rs.getString(bookPublishDateCol);
-                    short remainingAmount = rs.getShort(bookRemainingAmountCol);
-
-                    Set<String> authors = new HashSet<>();
-
-                    do {
-                        String author = rs.getString(bookAuthorCol);
-
-                        if(author != null){
-                            authors.add(author);
-                        }
-                    } while (rs.next() && rs.getShort(bookIdCol) == bookId);
-
-                    Book book = new Book(bookId, title, authors, publishDate, remainingAmount);
-                    books.add(book);
-                }
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-        return books;
-    }
-
     @Override
     public int getBookCount() throws DaoException {
         try (Connection connection = DataSource.getConnection();
@@ -173,7 +142,7 @@ public class BookDaoImpl implements BookDao {
             statement.setShort(1, bookId);
             ResultSet resultSet = statement.executeQuery();
 
-            return (resultSet.next() ? Optional.of(createBookFromResultSet(resultSet, true))
+            return (resultSet.next() ? Optional.of(createBookFromRS(resultSet))
                     : Optional.empty());
         } catch (SQLException e) {
             throw new DaoException("Error finding book by id.", e);
@@ -206,6 +175,86 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
+    private Book createBookFromRS(ResultSet rs) throws SQLException {
+        Book book = new Book();
+
+        short bookId = rs.getShort(bookIdCol);
+        String title = rs.getString(bookTitleCol);
+        String publishDate = rs.getString(bookPublishDateCol);
+        short remainingAmount = rs.getShort(bookRemainingAmountCol);
+
+        book.setId(bookId);
+        book.setTitle(title);
+
+        book.setPublishDate(publishDate);
+        book.setRemainingAmount(remainingAmount);
+
+        book.setCover(rs.getString(bookCoverCol));
+        book.setPublisher(rs.getString(bookPublisherCol));
+        book.setPageCount(Short.parseShort(rs.getString(bookPageCountCol)));
+        book.setIsbn(rs.getString(bookIsbnCol));
+        book.setDescription(rs.getString(bookDescCol));
+        book.setTotalAmount(Short.parseShort(rs.getString(bookTotalAmountCol)));
+        book.setStatus(rs.getString(bookStatusCol));
+
+        Set<String> authors = new HashSet<>();
+        Set<String> genres = new HashSet<>();
+
+        String author = rs.getString(bookAuthorCol);
+
+        if (author != null) {
+            authors.add(author);
+        }
+
+        do {
+            String genre = rs.getString(bookGenreCol);
+
+            if (genre != null) {
+                genres.add(genre);
+            }
+        } while (rs.next() && rs.getString(bookAuthorCol).equals(author));
+
+        while (rs.next()) {
+            author = rs.getString(bookAuthorCol);
+
+            if (author != null) {
+                authors.add(author);
+            }
+        }
+
+        book.setAuthors(authors);
+        book.setGenres(genres);
+
+        return book;
+    }
+
+    private List<Book> createBooksFromRS(ResultSet rs) throws SQLException {
+        List<Book> books = new ArrayList<>();
+
+        if (rs.next()) {
+            while (!rs.isAfterLast()) {
+                short bookId = rs.getShort(bookIdCol);
+                String title = rs.getString(bookTitleCol);
+                String publishDate = rs.getString(bookPublishDateCol);
+                short remainingAmount = rs.getShort(bookRemainingAmountCol);
+
+                Set<String> authors = new HashSet<>();
+
+                do {
+                    String author = rs.getString(bookAuthorCol);
+
+                    if (author != null) {
+                        authors.add(author);
+                    }
+                } while (rs.next() && rs.getShort(bookIdCol) == bookId);
+
+                Book book = new Book(bookId, title, authors, publishDate, remainingAmount);
+                books.add(book);
+            }
+        }
+        return books;
+    }
+
     private Book createBookFromResultSet(ResultSet resultSet, boolean areAllFieldsPresent) throws SQLException {
         short id = resultSet.getShort(bookIdCol);
         String title = resultSet.getString(bookTitleCol);
@@ -217,8 +266,6 @@ public class BookDaoImpl implements BookDao {
         short remainingAmount = resultSet.getShort(bookRemainingAmountCol);
 
         Book book = new Book(id, title, authors, publishDate, remainingAmount);
-
-        System.out.println(book);
 
         if (areAllFieldsPresent) {
             book.setCover(resultSet.getString(bookCoverCol));

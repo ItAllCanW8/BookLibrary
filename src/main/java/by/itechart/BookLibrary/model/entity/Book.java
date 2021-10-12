@@ -18,7 +18,7 @@ public class Book implements Serializable {
     private short remainingAmount;
     private String status;
 
-    private Book(){}
+    public Book(){}
 
     public Book(short id){this.id = id;}
 
@@ -46,6 +46,8 @@ public class Book implements Serializable {
         this.publishDate = publishDate;
         this.remainingAmount = remainingAmount;
     }
+
+    public void setId(short id) { this.id = id; }
 
     public short getId() {
         return id;
