@@ -5,7 +5,7 @@
 <body>
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
-    <c:set var="books" scope="request" value="${books}"/>
+    <c:set var="books" scope="page" value="${books}"/>
 
     <section class=" slider_section position-relative">
         <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">

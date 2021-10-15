@@ -5,10 +5,23 @@
 <body class="sub_page">
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
-    <c:set var="book" scope="request" value="${book}"/>
+    <c:set var="book" scope="page" value="${book}"/>
 </div>
 
 <section class="about_section layout_padding">
+    <script type="text/javascript">
+        function remove() {
+            var doc = document.querySelectorAll('.item');
+            doc.forEach(x => {
+                if (x.querySelector('input').checked) {
+                    x.remove()
+                }
+            })
+        }
+    </script>
+
+<%--    <button onclick="remove()">Delete</button>--%>
+
     <div class="side_img">
         <img src="${pageContext.request.contextPath}/images/layout/side-img.png" alt=""/>
     </div>
@@ -56,13 +69,16 @@
 
                                 <h5>
                                     <label for="inputBookAuthors">Author(-s)</label>
-                                    <div class="form-group mt-1">
-                                        <input type="text" id="inputBookAuthors" name="bookAuthors"
-                                               class="form-control field"
-                                               placeholder="3 - 255 characters"
-                                               required
-                                               value="${book.authors}" pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,255}"/>
-                                    </div>
+                                    <c:forEach var="author" items="${book.authors}">
+                                        <%--                                        <input type="checkbox" /><span>${author}</span><br>--%>
+                                        <div class="form-group mt-1">
+                                            <input type="text" id="inputBookAuthors" name="bookAuthors"
+                                                   class="form-control field"
+                                                   placeholder="3 - 255 characters"
+                                                   required
+                                                   value="${author}" pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,255}"/>
+                                        </div>
+                                    </c:forEach>
                                 </h5>
 
                                 <h5>
@@ -89,13 +105,15 @@
 
                                 <h5>
                                     <label for="inputBookGenres">Genre(-s)</label>
-                                    <div class="form-group mt-1">
-                                        <input type="text" id="inputBookGenres" name="bookGenres"
-                                               class="form-control field"
-                                               placeholder="3 - 255 characters"
-                                               required
-                                               value="${book.genres}" pattern="[a-zA-Z.,\p{Blank}]{3,255}"/>
-                                    </div>
+                                    <c:forEach var="genre" items="${book.genres}">
+                                        <div class="form-group mt-1">
+                                            <input type="text" id="inputBookGenres" name="bookGenres"
+                                                   class="form-control field"
+                                                   placeholder="3 - 255 characters"
+                                                   required
+                                                   value="${genre}" pattern="[a-zA-Z.,\p{Blank}]{3,255}"/>
+                                        </div>
+                                    </c:forEach>
                                 </h5>
 
                                 <h5>
@@ -158,6 +176,8 @@
             </div>
         </div>
     </div>
+
+
 </section>
 
 </body>

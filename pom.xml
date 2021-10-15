@@ -71,6 +71,13 @@
             <version>1.4</version>
         </dependency>
 
+        <!-- Apache Commons Collections -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.1</version>
+        </dependency>
+
         <!-- Log4j-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

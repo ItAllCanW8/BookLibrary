@@ -25,6 +25,9 @@ public class BookFactory implements EntityFactory<Book> {
 //        if (BookValidator.isBookFormValid(fields)) {
 //            String title = fields.get(RequestParameter.BOOK_TITLE);
 //            String authors = fields.get(RequestParameter.BOOK_AUTHORS);
+//
+//
+//
 //            String publisher = fields.get(RequestParameter.BOOK_PUBLISHER);
 //            String publishDate = fields.get(RequestParameter.BOOK_PUBLISH_DATE);
 //            String genres = fields.get(RequestParameter.BOOK_GENRES);
