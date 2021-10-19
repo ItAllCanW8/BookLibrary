@@ -34,6 +34,7 @@ public class Home implements Command {
             int numberOfPages = (int) Math.ceil(bookCount * 1.0 / recordsPerPage);
 
             List<Book> books = service.loadBookList((page - 1) * recordsPerPage, recordsPerPage, filterModeOptional);
+
             if (books.size() > 0) {
                 req.setAttribute(RequestParameter.BOOKS, books);
                 req.setAttribute(RequestParameter.NUMBER_OF_PAGES, numberOfPages);

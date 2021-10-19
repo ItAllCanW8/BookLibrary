@@ -11,6 +11,7 @@ import by.itechart.BookLibrary.exception.ServiceException;
 import by.itechart.BookLibrary.model.entity.Book;
 import by.itechart.BookLibrary.model.service.BookService;
 import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
+import com.google.gson.Gson;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +29,12 @@ public class BookPage implements Command {
             Optional<Book> bookOptional = service.findById(Short.parseShort(bookId));
             if (bookOptional.isPresent()) {
                 Book book = bookOptional.get();
+
+//                Gson g = new Gson();
+//                String json = g.toJson(book);
+//
+//                req.setAttribute("json", json);
+
                 req.setAttribute(RequestParameter.BOOK, book);
                 req.setAttribute(RequestParameter.CURRENT_DATE, LocalDate.now());
                 result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);

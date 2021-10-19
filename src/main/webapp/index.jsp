@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
 <body>
+<%--    <jsp:forward page="index.html"/>--%>
     <jsp:forward page="/home.do"/>
 </body>
 </html>

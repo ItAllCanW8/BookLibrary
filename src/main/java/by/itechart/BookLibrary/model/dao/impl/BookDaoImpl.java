@@ -280,31 +280,4 @@ public class BookDaoImpl implements BookDao {
 
         return book;
     }
-
-//    private List<Book> createBooksFromRS(ResultSet rs) throws SQLException {
-//        List<Book> books = new ArrayList<>();
-//
-//        if (rs.next()) {
-//            while (!rs.isAfterLast()) {
-//                short bookId = rs.getShort(bookIdCol);
-//                String title = rs.getString(bookTitleCol);
-//                String publishDate = rs.getString(bookPublishDateCol);
-//                short remainingAmount = rs.getShort(bookRemainingAmountCol);
-//
-//                Set<String> authors = new HashSet<>();
-//
-//                do {
-//                    String author = rs.getString(bookAuthorCol);
-//
-//                    if (author != null) {
-//                        authors.add(author);
-//                    }
-//                } while (rs.next() && rs.getShort(bookIdCol) == bookId);
-//
-//                Book book = new Book(bookId, title, authors, publishDate, remainingAmount);
-//                books.add(book);
-//            }
-//        }
-//        return books;
-//    }
 }
