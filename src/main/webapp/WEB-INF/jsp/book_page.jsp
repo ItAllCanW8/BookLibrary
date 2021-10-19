@@ -9,19 +9,6 @@
 </div>
 
 <section class="about_section layout_padding">
-    <script type="text/javascript">
-        function remove() {
-            var doc = document.querySelectorAll('.item');
-            doc.forEach(x => {
-                if (x.querySelector('input').checked) {
-                    x.remove()
-                }
-            })
-        }
-    </script>
-
-<%--    <button onclick="remove()">Delete</button>--%>
-
     <div class="side_img">
         <img src="${pageContext.request.contextPath}/images/layout/side-img.png" alt=""/>
     </div>
@@ -30,18 +17,28 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="img_container">
-                    <div class="img-box b1">
-                        <img src="${pageContext.request.contextPath}/load_book_cover.do?bookCover=${book.cover}"
-                             alt=""/>
-                    </div>
+                    <c:if test="${book.id != null}">
+                        <div class="img-box b1">
+                            <img src="${pageContext.request.contextPath}/load_book_cover.do?bookCover=${book.cover}"
+                                 alt=""/>
+                        </div>
 
-                    <label for="coverUpload">Upload book cover</label>
-                    <form action="${pageContext.request.contextPath}/upload_book_cover.do?bookId=${book.id}"
-                          method="post" enctype="multipart/form-data"
-                          id="coverUpload">
-                        <input type="file" name="bookCover" class="form-control-file" accept="image/jpeg, image/png"/>
-                        <input type="submit" class="btn btn-outline-secondary" value="Upload"/>
-                    </form>
+                        <label for="coverUpload">Upload book cover</label>
+                        <form action="${pageContext.request.contextPath}/upload_book_cover.do?bookId=${book.id}"
+                              method="post" enctype="multipart/form-data"
+                              id="coverUpload">
+                            <input type="file" name="bookCover" class="form-control-file"
+                                   accept="image/jpeg, image/png"/>
+                            <input type="submit" class="btn btn-outline-secondary" value="Upload"/>
+                        </form>
+                    </c:if>
+
+                    <c:if test="${book.id == null}">
+                        <div class="img-box b1">
+                            <img src="${pageContext.request.contextPath}/load_book_cover.do?bookCover=default_book_cover.png"
+                                 alt=""/>
+                        </div>
+                    </c:if>
                 </div>
             </div>
 
@@ -64,22 +61,10 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                           value="${book.title}" pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"/>
+                                    <%--                                           pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"--%>
+                                           value="${book.title}"/>
                                 </h3>
 
-                                <h5>
-                                    <label for="inputBookAuthors">Author(-s)</label>
-                                    <c:forEach var="author" items="${book.authors}">
-                                        <%--                                        <input type="checkbox" /><span>${author}</span><br>--%>
-                                        <div class="form-group mt-1">
-                                            <input type="text" id="inputBookAuthors" name="bookAuthors"
-                                                   class="form-control field"
-                                                   placeholder="3 - 255 characters"
-                                                   required
-                                                   value="${author}" pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,255}"/>
-                                        </div>
-                                    </c:forEach>
-                                </h5>
 
                                 <h5>
                                     <label for="inputBookPublisher">Publisher</label>
@@ -88,7 +73,8 @@
                                                class="form-control field"
                                                placeholder="3 - 45 characters"
                                                required
-                                               value="${book.publisher}" pattern="[А-Яа-я\w\p{Blank}.,]{3,45}"/>
+                                        <%--                                               pattern="[А-Яа-я\w\p{Blank}.,]{3,45}"--%>
+                                               value="${book.publisher}"/>
                                     </div>
                                 </h5>
 
@@ -103,18 +89,6 @@
                                     </div>
                                 </h5>
 
-                                <h5>
-                                    <label for="inputBookGenres">Genre(-s)</label>
-                                    <c:forEach var="genre" items="${book.genres}">
-                                        <div class="form-group mt-1">
-                                            <input type="text" id="inputBookGenres" name="bookGenres"
-                                                   class="form-control field"
-                                                   placeholder="3 - 255 characters"
-                                                   required
-                                                   value="${genre}" pattern="[a-zA-Z.,\p{Blank}]{3,255}"/>
-                                        </div>
-                                    </c:forEach>
-                                </h5>
 
                                 <h5>
                                     <label for="inputBookPageCount">Page count</label>
@@ -123,7 +97,8 @@
                                                class="form-control field"
                                                placeholder="0 - 32767"
                                                required
-                                               value="${book.pageCount}" pattern="[\d]{1,5}"/>
+                                        <%--                                               pattern="[\d]{1,5}"--%>
+                                               value="${book.pageCount}"/>
                                     </div>
                                 </h5>
 
@@ -134,7 +109,7 @@
                                                class="form-control field"
                                                placeholder="978-3-16-148410-0"
                                                required
-                                               pattern="[\d-]{13,45}"
+                                        <%--                                               pattern="[\d-]{13,45}"--%>
                                                value="${book.isbn}"/>
                                     </div>
                                 </h5>
@@ -146,10 +121,35 @@
                                                class="form-control field"
                                                placeholder="0 - 32767"
                                                required
-                                               value="${book.totalAmount}" pattern="[\d]{1,5}"/>
+                                        <%--                                               pattern="[\d]{1,5}"--%>
+                                               value="${book.totalAmount}"/>
                                     </div>
                                 </h5>
                             </div>
+
+                            <h4>
+                                <label for="inputBookAuthors">Author(-s)</label>
+                                <div class="form-group mt-1">
+                                    <input type="text" id="inputBookAuthors" name="bookAuthors"
+                                           class="form-control field"
+                                           placeholder="3 - 255 characters"
+                                           required
+                                    <%--                                           pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,500}"--%>
+                                           value="${book.authors}"/>
+                                </div>
+                            </h4>
+
+                            <h4>
+                                <label for="inputBookGenres">Genre(-s)</label>
+                                <div class="form-group mt-1">
+                                    <input type="text" id="inputBookGenres" name="bookGenres"
+                                           class="form-control field"
+                                           placeholder="3 - 255 characters"
+                                           required
+                                    <%--                                           pattern="[a-zA-Z.,\p{Blank}]{3,500}"--%>
+                                           value="${book.genres}"/>
+                                </div>
+                            </h4>
 
                             <hr style="width:100%;text-align:left;margin-left:0">
                             <c:if test="${book.id != null}">
@@ -159,14 +159,14 @@
                                 </h3>
                             </c:if>
 
-                            <h5>
+                            <h4>
                                 <label for="inputBookDescription">Description</label>
                                 <textarea id="inputBookDescription" name="bookDescription" class="form-control"
                                           rows="5"
                                           placeholder="up to 1000 characters"
                                           minlength="3"
                                           maxlength="1000">${book.description}</textarea>
-                            </h5>
+                            </h4>
 
                             <button type="submit" class="btn btn-outline-success">Save</button>
                             <a href="${pageContext.request.contextPath}/home.do" class="btn btn-outline-warning"

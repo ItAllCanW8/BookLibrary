@@ -84,8 +84,7 @@
 
                 <div style="display: flex;justify-content: center">
                     <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
-                       role="button" style="width: 40%; margin-top: 1%; margin-bottom: 1%" aria-pressed="true">Delete
-                        Books</a>
+                       role="button" style="width: 40%; margin-top: 1%; margin-bottom: 1%" aria-pressed="true">Delete Books</a>
                 </div>
 
                 <div class="col-2" style="display: flex;justify-content: center">

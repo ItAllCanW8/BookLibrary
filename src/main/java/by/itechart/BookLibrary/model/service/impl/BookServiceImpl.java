@@ -27,8 +27,9 @@ public class BookServiceImpl implements BookService {
             Optional<Book> bookOptional = bookFactory.create(fields);
             if (bookOptional.isPresent()) {
                 Book book = bookOptional.get();
-                if(bookDao.isTitleAvailable(fields.get(RequestParameter.BOOK_TITLE)))
+                if(bookDao.isTitleAvailable(fields.get(RequestParameter.BOOK_TITLE))){
                     return (bookDao.add(book));
+                }
             }
         } catch (DaoException | NumberFormatException e) {
             throw new ServiceException(e);

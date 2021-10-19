@@ -15,6 +15,8 @@ public class BookDaoImpl implements BookDao {
             " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
 
+    public static final String LOAD_BOOK_GENRES = "select genre_id, genre from genres WHERE genre LIKE ";
+
     public static final String INSERT_AUTHORS = "INSERT INTO authors(book_id_fk, author) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
 
@@ -28,7 +30,7 @@ public class BookDaoImpl implements BookDao {
             "JOIN authors ON author_id_fk = author_id" +
             " WHERE book_id_fk IN (";
 
-    private static final String SELECT_COUNT = "SELECT COUNT(*) from books;";
+    private static final String SELECT_COUNT = "SELECT COUNT(book_id) from books;";
 
     private static final String FIND_BY_ID = "WITH fields_and_authors AS " +
             "(SELECT book_id, cover, title, publisher, publish_date, author, page_count, isbn, description, total_amount," +
@@ -43,7 +45,7 @@ public class BookDaoImpl implements BookDao {
 
     public static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
 
-    public static final String CHECK_FOR_EXISTENCE = "SELECT title FROM books WHERE title = ?;";
+    public static final String CHECK_TITLE_FOR_EXISTENCE = "SELECT title FROM books WHERE title = ?;";
 
     public static final String COMMA = ",";
 
@@ -70,23 +72,43 @@ public class BookDaoImpl implements BookDao {
     @Override
     public boolean add(Book book) throws DaoException {
         try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(INSERT)) {
-            statement.setString(1, book.getCover());
-            statement.setString(2, book.getTitle());
-            statement.setString(3, book.getPublisher());
-            statement.setString(4, book.getPublishDate());
-            statement.setShort(5, book.getPageCount());
-            statement.setString(6, book.getIsbn());
-            statement.setString(7, book.getDescription());
-            statement.setShort(8, book.getTotalAmount());
-            statement.setShort(9, book.getRemainingAmount());
-            statement.setString(10, book.getStatus());
+             PreparedStatement insertBook = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            connection.setAutoCommit(false);
 
-            if (statement.executeUpdate() == 1) {
-//                statement = connection.prepareStatement("");
+            insertBook.setString(1, book.getCover());
+            insertBook.setString(2, book.getTitle());
+            insertBook.setString(3, book.getPublisher());
+            insertBook.setString(4, book.getPublishDate());
+            insertBook.setShort(5, book.getPageCount());
+            insertBook.setString(6, book.getIsbn());
+            insertBook.setString(7, book.getDescription());
+            insertBook.setShort(8, book.getTotalAmount());
+            insertBook.setShort(9, book.getRemainingAmount());
+            insertBook.setString(10, book.getStatus());
+
+            if (insertBook.executeUpdate() == 1) {
+                StringBuilder stringBuilder = new StringBuilder(LOAD_BOOK_GENRES);
+                Set<String> genres = book.getGenres();
+
+                byte genreCounter = (byte) genres.size();
+                for (String genre: genres) {
+                    stringBuilder.append("'").append(genre).append("'");
+                    if(--genreCounter != 0){
+                        stringBuilder.append(" OR genre LIKE ");
+                    }
+                }
+                PreparedStatement loadGenres = connection.prepareStatement(String.valueOf(stringBuilder));
+                ResultSet rs = loadGenres.executeQuery();
+                Map<Short, String> genresFromDb = new HashMap<>();
+
+                while(rs.next()){
+                    genresFromDb.put(rs.getShort("genre_id"), rs.getString("genre"));
+                }
+
+//                if(genres.size() != genresFromDb.size())
             }
 
-            return statement.executeUpdate() == 1;
+            return true;
         } catch (SQLException e) {
             throw new DaoException("Error adding a book.", e);
         }
@@ -124,7 +146,6 @@ public class BookDaoImpl implements BookDao {
             String loadBookListQuery = SELECT_LIST;
 
             if (filterMode.isPresent()) {
-                System.out.println(filterMode.get());
                 loadBookListQuery += "WHERE status LIKE '" + filterMode.get() + "%' ";
             }
 
@@ -202,7 +223,7 @@ public class BookDaoImpl implements BookDao {
     @Override
     public boolean isTitleAvailable(String title) throws DaoException {
         try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(CHECK_FOR_EXISTENCE)) {
+             PreparedStatement statement = connection.prepareStatement(CHECK_TITLE_FOR_EXISTENCE)) {
             statement.setString(1, title);
             ResultSet resultSet = statement.executeQuery();
 
@@ -280,31 +301,4 @@ public class BookDaoImpl implements BookDao {
 
         return book;
     }
-
-//    private List<Book> createBooksFromRS(ResultSet rs) throws SQLException {
-//        List<Book> books = new ArrayList<>();
-//
-//        if (rs.next()) {
-//            while (!rs.isAfterLast()) {
-//                short bookId = rs.getShort(bookIdCol);
-//                String title = rs.getString(bookTitleCol);
-//                String publishDate = rs.getString(bookPublishDateCol);
-//                short remainingAmount = rs.getShort(bookRemainingAmountCol);
-//
-//                Set<String> authors = new HashSet<>();
-//
-//                do {
-//                    String author = rs.getString(bookAuthorCol);
-//
-//                    if (author != null) {
-//                        authors.add(author);
-//                    }
-//                } while (rs.next() && rs.getShort(bookIdCol) == bookId);
-//
-//                Book book = new Book(bookId, title, authors, publishDate, remainingAmount);
-//                books.add(book);
-//            }
-//        }
-//        return books;
-//    }
 }
