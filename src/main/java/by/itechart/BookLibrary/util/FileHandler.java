@@ -13,7 +13,8 @@ import java.nio.file.Paths;
 
 public class FileHandler {
     public static final String DOT_SYMBOL = ".";
-    private static final String DEFAULT_AVATAR = "default_avatar.png";
+
+    private static final String DEFAULT_BOOK_COVER = "default_book_cover.png";
 
     public static final String WEBAPP_FOLDER_PATH = "F:" + File.separator + "University" + File.separator
             + "ITechArt" + File.separator + "BookLibrary" + File.separator + "src" + File.separator + "main" + File.separator +
@@ -47,7 +48,7 @@ public class FileHandler {
         Path filePath = Paths.get(fileUri);
 
         if (!Files.exists(filePath)) {
-            filePath = Paths.get(FileHandler.WEBAPP_FOLDER_PATH + subfolder + DEFAULT_AVATAR);
+            filePath = Paths.get(FileHandler.WEBAPP_FOLDER_PATH + subfolder + DEFAULT_BOOK_COVER);
         }
         try {
             result = Files.readAllBytes(filePath);
