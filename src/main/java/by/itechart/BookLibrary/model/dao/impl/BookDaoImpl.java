@@ -17,14 +17,15 @@ public class BookDaoImpl implements BookDao {
             " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
 
-    public static final String LOAD_BOOK_GENRES = "select genre_id, genre from genres WHERE genre LIKE ";
+    public static final String LOAD_GENRES = "select genre_id, genre from genres WHERE genre LIKE ";
+
+    public static final String LOAD_AUTHORS = "select author_id, author from authors WHERE author LIKE ";
 
     public static final String INSERT_GENRES = "INSERT INTO genres(genre) VALUES";
+    public static final String INSERT_AUTHORS = "INSERT INTO authors(author) VALUES";
 
     public static final String INSERT_BOOK_GENRES = "INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES";
-
-    public static final String INSERT_AUTHORS = "INSERT INTO authors(book_id_fk, author) VALUES (?, ?, ?, ?, ?, ?, ?," +
-            "?, ?, ? );";
+    public static final String INSERT_BOOK_AUTHORS = "INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES";
 
     public static final String UPDATE = "UPDATE books SET title = ?, authors = ?, publisher = ?, publish_date = ?, " +
             "genres = ?, page_count = ?, isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ?" +
@@ -52,12 +53,6 @@ public class BookDaoImpl implements BookDao {
     public static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
 
     public static final String CHECK_TITLE_FOR_EXISTENCE = "SELECT title FROM books WHERE title = ?;";
-
-//    public static final String WHITESPACE = " ";
-//    public static final String COMMA = ",";
-//    public static final String APOSTROPHE = "'";
-//    public static final String RIGHT_PARENTHESIS = ")";
-//    public static final String LEFT_PARENTHESIS = "(";
 
     private static final String bookIdCol = "book_id";
     private static final String bookCoverCol = "cover";
@@ -105,6 +100,7 @@ public class BookDaoImpl implements BookDao {
                 System.out.println(book.getId());
 
                 insertNewGenres(connection, book);
+                insertNewAuthors(connection, book);
 //                connection.rollback();
             }
 
@@ -115,7 +111,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     private void insertNewGenres(Connection connection, Book book) throws SQLException {
-        StringBuilder loadGenresSB = new StringBuilder(LOAD_BOOK_GENRES);
+        StringBuilder loadGenresSB = new StringBuilder(LOAD_GENRES);
         Set<String> genres = book.getGenres();
 
         byte genresSize = (byte) genres.size();
@@ -146,12 +142,8 @@ public class BookDaoImpl implements BookDao {
             StringBuilder insertNewGenresSB = new StringBuilder(INSERT_GENRES);
             byte counter = (byte) (genresSize - genresFromDbSize);
 
-//            Set<String> genresToInsert = new LinkedHashSet<>();
-
             for (String genre : genres) {
                 if (!genresFromDb.containsValue(genre)) {
-//                    genresToInsert.add(genre);
-//                    insertNewGenresSB.append(" ('").append(genre).append("')");
                     insertNewGenresSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
                             .append(genre).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
 
@@ -164,8 +156,6 @@ public class BookDaoImpl implements BookDao {
             System.out.println("GENRES FROM DB :" + genresFromDb);
             System.out.println(insertNewGenresSB);
 
-//            Set<Short> insertedGenreIds = new LinkedHashSet<>();
-
             try (Statement insertGenres = connection.createStatement()) {
                 if (insertGenres.executeUpdate(String.valueOf(insertNewGenresSB), Statement.RETURN_GENERATED_KEYS) > 0) {
                     ResultSet rsWithGenreIds = insertGenres.getGeneratedKeys();
@@ -175,8 +165,7 @@ public class BookDaoImpl implements BookDao {
                     }
 
                     do {
-//                        insertedGenreIds.add(rsWithGenreIds.getShort(1));
-                        genresFromDb.put(rsWithGenreIds.getShort(1), "plug");
+                        genresFromDb.put(rsWithGenreIds.getShort(1), "");
                     } while (rsWithGenreIds.next());
                 }
             }
@@ -198,6 +187,87 @@ public class BookDaoImpl implements BookDao {
 
             System.out.println("GENRES FINAL "+ insertAllBookGenres.executeUpdate(String.valueOf(insertBookGenresSB)));
         }
+    }
+
+    private void insertNewAuthors(Connection connection, Book book) throws SQLException {
+        StringBuilder loadAuthorsSB = new StringBuilder(LOAD_AUTHORS);
+        Set<String> authors = book.getAuthors();
+
+        byte authorsSize = (byte) authors.size();
+        byte authorCounter = authorsSize;
+
+        for (String genre : authors) {
+            loadAuthorsSB.append("'").append(genre).append("'");
+            if (--authorCounter != 0) {
+                loadAuthorsSB.append(WHITESPACE).append("OR author LIKE").append(WHITESPACE);
+            }
+        }
+
+        ResultSet resultSetWithAuthors;
+        Map<Short, String> authorsFromDb = new HashMap<>();
+
+        try (PreparedStatement loadAuthorsStatement = connection.prepareStatement(String.valueOf(loadAuthorsSB))) {
+            resultSetWithAuthors = loadAuthorsStatement.executeQuery();
+
+            while (resultSetWithAuthors.next()) {
+                authorsFromDb.put(resultSetWithAuthors.getShort("author_id"),
+                        resultSetWithAuthors.getString("author"));
+            }
+        }
+
+        byte authorsFromDbSize = (byte) authorsFromDb.size();
+
+        if (authorsSize > authorsFromDbSize) {
+            StringBuilder insertNewAuthorsSB = new StringBuilder(INSERT_AUTHORS);
+            byte counter = (byte) (authorsSize - authorsFromDbSize);
+
+            for (String author : authors) {
+                if (!authorsFromDb.containsValue(author)) {
+                    insertNewAuthorsSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
+                            .append(author).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
+
+                    if (--counter != 0) {
+                        insertNewAuthorsSB.append(COMMA);
+                    }
+                }
+            }
+
+            System.out.println("AUTHORS FROM DB :" + authorsFromDb);
+            System.out.println(insertNewAuthorsSB);
+
+            try (Statement insertAuthorsStatement = connection.createStatement()) {
+                if (insertAuthorsStatement.executeUpdate(String.valueOf(insertNewAuthorsSB), Statement.RETURN_GENERATED_KEYS) > 0) {
+                    ResultSet rsWithAuthorIds = insertAuthorsStatement.getGeneratedKeys();
+
+                    if (!rsWithAuthorIds.next()) {
+                        throw new SQLException("Adding book failed, no IDs obtained for new authors.");
+                    }
+
+                    do {
+                        authorsFromDb.put(rsWithAuthorIds.getShort(1), "");
+                    } while (rsWithAuthorIds.next());
+                }
+            }
+        }
+
+        try(Statement insertAllBookAuthorsSt = connection.createStatement()){
+            StringBuilder insertBookAuthorsSB = new StringBuilder(INSERT_BOOK_AUTHORS);
+            short bookIdFk = book.getId();
+            byte counter = (byte) authorsFromDb.size();
+
+            for (Short authorIdFk : authorsFromDb.keySet()){
+                insertBookAuthorsSB.append(LEFT_PARENTHESIS).append(bookIdFk).append(COMMA)
+                        .append(authorIdFk).append(RIGHT_PARENTHESIS);
+
+                if(--counter != 0){
+                    insertBookAuthorsSB.append(COMMA);
+                }
+            }
+
+            System.out.println("AUTHORS FINAL "+ insertAllBookAuthorsSt.executeUpdate(String.valueOf(insertBookAuthorsSB)));
+        }
+
+        connection.commit();
     }
 
     @Override
