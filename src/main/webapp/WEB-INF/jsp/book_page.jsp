@@ -176,9 +176,16 @@
             </div>
         </div>
     </div>
-
-
 </section>
+
+<script type="application/javascript">
+    function removeBracketsFromStr(str, elementId) {
+        document.getElementById(elementId).value = str.replace(/[\[\]]/g, '');
+    }
+
+    removeBracketsFromStr(document.getElementById('inputBookAuthors').value, 'inputBookAuthors');
+    removeBracketsFromStr(document.getElementById('inputBookGenres').value, 'inputBookGenres');
+</script>
 
 </body>
 

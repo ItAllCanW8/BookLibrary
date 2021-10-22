@@ -32,9 +32,9 @@ public class BookDaoImpl implements BookDao {
             " isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ? WHERE book_id = ?;";
 
     public static final String LOAD_OLD_BOOK_GENRES = "SELECT book_id_fk, genre_id, genre FROM book_genres" +
-            " JOIN genres ON genre_id = genre_id_fk WHERE book_id_fk = ?; ";
+            " JOIN genres ON genre_id = genre_id_fk WHERE book_id_fk = ?;";
     public static final String DELETE_OLD_BOOK_GENRES = "DELETE from book_genres WHERE book_id_fk = ?" +
-            " AND genre_id_fk IN (7, 8,9); ";
+            " AND genre_id_fk IN";
 
     private static final String SELECT_LIST = "SELECT book_id, title, publish_date, remaining_amount FROM books ";
 
@@ -125,6 +125,8 @@ public class BookDaoImpl implements BookDao {
     public boolean update(Book book) throws DaoException {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement updateBookSt = connection.prepareStatement(UPDATE)) {
+            connection.setAutoCommit(false);
+
             updateBookSt.setString(1, book.getTitle());
             updateBookSt.setString(2, book.getPublisher());
             updateBookSt.setString(3, book.getPublishDate());
@@ -137,7 +139,7 @@ public class BookDaoImpl implements BookDao {
             updateBookSt.setShort(10, book.getId());
 
             if(updateBookSt.executeUpdate() == 1){
-
+                updateGenres(connection, book);
             }
 
             return true;
@@ -163,22 +165,22 @@ public class BookDaoImpl implements BookDao {
             ResultSet rs = statement.executeQuery(loadBookListQuery);
 
             if (rs.isBeforeFirst()) {
-                StringBuilder loadBookAuthorsQuery = new StringBuilder(LOAD_BOOK_AUTHORS);
+                StringBuilder loadBookAuthorsSB = new StringBuilder(LOAD_BOOK_AUTHORS);
 
                 while (rs.next()) {
                     Book book = createBookFromRS(rs, false);
                     books.add(book);
 
-                    loadBookAuthorsQuery.append(book.getId());
+                    loadBookAuthorsSB.append(book.getId());
 
                     if (!rs.isLast()) {
-                        loadBookAuthorsQuery.append(COMMA);
+                        loadBookAuthorsSB.append(COMMA);
                     } else {
-                        loadBookAuthorsQuery.append(RIGHT_PARENTHESIS);
+                        loadBookAuthorsSB.append(RIGHT_PARENTHESIS);
                     }
                 }
 
-                rs = statement.executeQuery(String.valueOf(loadBookAuthorsQuery));
+                rs = statement.executeQuery(loadBookAuthorsSB.toString());
                 joinBooksWithAuthors(rs, books);
             }
         } catch (SQLException e) {
@@ -258,8 +260,8 @@ public class BookDaoImpl implements BookDao {
     }
 
     private boolean updateGenres(Connection connection, Book book) throws SQLException {
-        BidiMap<Short, String> oldBookGenres = new DualHashBidiMap<>();
         Set<String> newBookGenres = book.getGenres();
+        BidiMap<Short, String> oldBookGenres = new DualHashBidiMap<>();
 
         try(PreparedStatement loadOldBookGenresSt = connection.prepareStatement(LOAD_OLD_BOOK_GENRES)){
             loadOldBookGenresSt.setShort(1, book.getId());
@@ -269,6 +271,13 @@ public class BookDaoImpl implements BookDao {
                 oldBookGenres.put(rsWithOldBookGenres.getShort(genreIdCol), rsWithOldBookGenres.getString(genreCol));
             }
         }
+
+        if(newBookGenres.equals(oldBookGenres.values())){
+            System.out.println("EQUALS");
+        }
+
+        System.out.println("old genres "+ oldBookGenres);
+        System.out.println("new genres "+ newBookGenres);
 
         byte newBookGenresSize = (byte) newBookGenres.size();
         byte oldBookGenresSize = (byte) oldBookGenres.size();
@@ -282,13 +291,24 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
+            StringBuilder deleteOldBookGenresSB = new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS);
+            byte genreIdsCounter = (byte) genresToDelete.size();
 
+            for(Short genreIdFk : genresToDelete){
+                deleteOldBookGenresSB.append(genreIdFk);
+
+                if(--genreIdsCounter != 0){
+                    deleteOldBookGenresSB.append(COMMA);
+                } else {
+                    deleteOldBookGenresSB.append(RIGHT_PARENTHESIS);
+                }
+            }
+
+            try(PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(deleteOldBookGenresSB.toString())){
+                deleteOldBookGenresSt.setShort(1, book.getId());
+                deleteOldBookGenresSt.executeUpdate();
+            }
         }
-
-
-
-
-
 
         return true;
     }
@@ -311,7 +331,7 @@ public class BookDaoImpl implements BookDao {
         ResultSet resultSetWithGenres;
         Map<Short, String> genresFromDb = new HashMap<>();
 
-        try (PreparedStatement loadGenresSt = connection.prepareStatement(String.valueOf(loadGenresSB))) {
+        try (PreparedStatement loadGenresSt = connection.prepareStatement(loadGenresSB.toString())) {
             resultSetWithGenres = loadGenresSt.executeQuery();
 
             while (resultSetWithGenres.next()) {
@@ -338,7 +358,7 @@ public class BookDaoImpl implements BookDao {
             }
 
             try (Statement insertNewGenresSt = connection.createStatement()) {
-                if (insertNewGenresSt.executeUpdate(String.valueOf(insertNewGenresSB), Statement.RETURN_GENERATED_KEYS) > 0) {
+                if (insertNewGenresSt.executeUpdate(insertNewGenresSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
                     ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
 
                     if (!rsWithNewGenreIds.next()) {
@@ -368,7 +388,7 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            return insertAllBookGenres.executeUpdate(String.valueOf(insertBookGenresSB)) > 0;
+            return insertAllBookGenres.executeUpdate(insertBookGenresSB.toString()) > 0;
         }
     }
 
@@ -389,7 +409,7 @@ public class BookDaoImpl implements BookDao {
         ResultSet resultSetWithAuthors;
         Map<Short, String> authorsFromDb = new HashMap<>();
 
-        try (PreparedStatement loadAuthorsStatement = connection.prepareStatement(String.valueOf(loadAuthorsSB))) {
+        try (PreparedStatement loadAuthorsStatement = connection.prepareStatement(loadAuthorsSB.toString())) {
             resultSetWithAuthors = loadAuthorsStatement.executeQuery();
 
             while (resultSetWithAuthors.next()) {
@@ -416,7 +436,7 @@ public class BookDaoImpl implements BookDao {
             }
 
             try (Statement insertNewAuthorsSt = connection.createStatement()) {
-                if (insertNewAuthorsSt.executeUpdate(String.valueOf(insertNewAuthorsSB), Statement.RETURN_GENERATED_KEYS) > 0) {
+                if (insertNewAuthorsSt.executeUpdate(insertNewAuthorsSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
                     ResultSet rsWithNewAuthorIds = insertNewAuthorsSt.getGeneratedKeys();
 
                     if (!rsWithNewAuthorIds.next()) {
@@ -446,7 +466,7 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            return insertAllBookAuthorsSt.executeUpdate(String.valueOf(insertBookAuthorsSB)) > 0;
+            return insertAllBookAuthorsSt.executeUpdate(insertBookAuthorsSB.toString()) > 0;
         }
     }
 

@@ -14,10 +14,10 @@ SELECT book_id, title, author, publish_date, remaining_amount FROM book_authors 
  
 SELECT book_id_fk, author, author_id FROM book_authors JOIN authors ON author_id = author_id_fk  WHERE book_id_fk = 13;
 DELETE from book_authors WHERE book_id_fk = 13 AND author_id_fk IN(3, 5,7);
-INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES (13, 7); 
+INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES (13, 3); 
 
 SELECT book_id_fk, genre, genre_id FROM book_genres JOIN genres ON genre_id = genre_id_fk  WHERE book_id_fk = 13; 
-DELETE from book_genres WHERE book_id_fk = 13 AND genre_id_fk IN(7);
+DELETE from book_genres WHERE book_id_fk = 13 AND genre_id_fk IN(7, 8, 9);
 INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES (13, 9);
  
 SELECT book_id, title, author, publish_date, remaining_amount FROM books
