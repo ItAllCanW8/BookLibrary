@@ -69,6 +69,11 @@ public class BookDaoImpl implements BookDao {
     private static final String bookStatusCol = "status";
     private static final String bookIdFkCol = "book_id_fk";
 
+    private static final String genreIdCol = "genre_id";
+    private static final String genreCol = "genre";
+    private static final String authorIdCol = "author_id";
+    private static final String authorCol = "author";
+
     BookDaoImpl() {
     }
 
@@ -97,11 +102,12 @@ public class BookDaoImpl implements BookDao {
                 }
 
                 book.setId(rsWithBookId.getShort(1));
-                System.out.println(book.getId());
 
-                insertNewGenres(connection, book);
-                insertNewAuthors(connection, book);
-//                connection.rollback();
+                if(insertGenres(connection, book) && insertAuthors(connection, book)){
+                    connection.commit();
+                } else {
+                    connection.rollback();
+                }
             }
 
             return true;
@@ -110,7 +116,7 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-    private void insertNewGenres(Connection connection, Book book) throws SQLException {
+    private boolean insertGenres(Connection connection, Book book) throws SQLException {
         StringBuilder loadGenresSB = new StringBuilder(LOAD_GENRES);
         Set<String> genres = book.getGenres();
 
@@ -119,20 +125,21 @@ public class BookDaoImpl implements BookDao {
 
         for (String genre : genres) {
             loadGenresSB.append("'").append(genre).append("'");
+
             if (--genreCounter != 0) {
-//                loadGenresSB.append(" OR genre LIKE ");
                 loadGenresSB.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
             }
         }
 
-        ResultSet rs;
+        ResultSet resultSetWithGenres;
         Map<Short, String> genresFromDb = new HashMap<>();
 
-        try (PreparedStatement loadGenres = connection.prepareStatement(String.valueOf(loadGenresSB))) {
-            rs = loadGenres.executeQuery();
+        try (PreparedStatement loadGenresSt = connection.prepareStatement(String.valueOf(loadGenresSB))) {
+            resultSetWithGenres = loadGenresSt.executeQuery();
 
-            while (rs.next()) {
-                genresFromDb.put(rs.getShort("genre_id"), rs.getString("genre"));
+            while (resultSetWithGenres.next()) {
+                genresFromDb.put(resultSetWithGenres.getShort(genreIdCol),
+                        resultSetWithGenres.getString(genreCol));
             }
         }
 
@@ -153,20 +160,19 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            System.out.println("GENRES FROM DB :" + genresFromDb);
-            System.out.println(insertNewGenresSB);
+            try (Statement insertNewGenresSt = connection.createStatement()) {
+                if (insertNewGenresSt.executeUpdate(String.valueOf(insertNewGenresSB), Statement.RETURN_GENERATED_KEYS) > 0) {
+                    ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
 
-            try (Statement insertGenres = connection.createStatement()) {
-                if (insertGenres.executeUpdate(String.valueOf(insertNewGenresSB), Statement.RETURN_GENERATED_KEYS) > 0) {
-                    ResultSet rsWithGenreIds = insertGenres.getGeneratedKeys();
-
-                    if (!rsWithGenreIds.next()) {
+                    if (!rsWithNewGenreIds.next()) {
                         throw new SQLException("Adding book failed, no IDs obtained for new genres.");
                     }
 
                     do {
-                        genresFromDb.put(rsWithGenreIds.getShort(1), "");
-                    } while (rsWithGenreIds.next());
+                        //save the IDs of the newly inserted genres for further insertion into
+                        // book_genres(book_id_fk, genre_id_fk)
+                        genresFromDb.put(rsWithNewGenreIds.getShort(1), "");
+                    } while (rsWithNewGenreIds.next());
                 }
             }
         }
@@ -185,11 +191,11 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            System.out.println("GENRES FINAL "+ insertAllBookGenres.executeUpdate(String.valueOf(insertBookGenresSB)));
+            return insertAllBookGenres.executeUpdate(String.valueOf(insertBookGenresSB)) > 0;
         }
     }
 
-    private void insertNewAuthors(Connection connection, Book book) throws SQLException {
+    private boolean insertAuthors(Connection connection, Book book) throws SQLException {
         StringBuilder loadAuthorsSB = new StringBuilder(LOAD_AUTHORS);
         Set<String> authors = book.getAuthors();
 
@@ -210,8 +216,8 @@ public class BookDaoImpl implements BookDao {
             resultSetWithAuthors = loadAuthorsStatement.executeQuery();
 
             while (resultSetWithAuthors.next()) {
-                authorsFromDb.put(resultSetWithAuthors.getShort("author_id"),
-                        resultSetWithAuthors.getString("author"));
+                authorsFromDb.put(resultSetWithAuthors.getShort(authorIdCol),
+                        resultSetWithAuthors.getString(authorCol));
             }
         }
 
@@ -232,20 +238,19 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            System.out.println("AUTHORS FROM DB :" + authorsFromDb);
-            System.out.println(insertNewAuthorsSB);
+            try (Statement insertNewAuthorsSt = connection.createStatement()) {
+                if (insertNewAuthorsSt.executeUpdate(String.valueOf(insertNewAuthorsSB), Statement.RETURN_GENERATED_KEYS) > 0) {
+                    ResultSet rsWithNewAuthorIds = insertNewAuthorsSt.getGeneratedKeys();
 
-            try (Statement insertAuthorsStatement = connection.createStatement()) {
-                if (insertAuthorsStatement.executeUpdate(String.valueOf(insertNewAuthorsSB), Statement.RETURN_GENERATED_KEYS) > 0) {
-                    ResultSet rsWithAuthorIds = insertAuthorsStatement.getGeneratedKeys();
-
-                    if (!rsWithAuthorIds.next()) {
+                    if (!rsWithNewAuthorIds.next()) {
                         throw new SQLException("Adding book failed, no IDs obtained for new authors.");
                     }
 
                     do {
-                        authorsFromDb.put(rsWithAuthorIds.getShort(1), "");
-                    } while (rsWithAuthorIds.next());
+                        //save the IDs of the newly inserted authors for further insertion into
+                        // book_authors(book_id_fk, author_id_fk)
+                        authorsFromDb.put(rsWithNewAuthorIds.getShort(1), "");
+                    } while (rsWithNewAuthorIds.next());
                 }
             }
         }
@@ -264,10 +269,8 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            System.out.println("AUTHORS FINAL "+ insertAllBookAuthorsSt.executeUpdate(String.valueOf(insertBookAuthorsSB)));
+            return insertAllBookAuthorsSt.executeUpdate(String.valueOf(insertBookAuthorsSB)) > 0;
         }
-
-        connection.commit();
     }
 
     @Override
