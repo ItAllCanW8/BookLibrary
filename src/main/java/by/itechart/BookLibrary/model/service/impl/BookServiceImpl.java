@@ -11,9 +11,8 @@ import by.itechart.BookLibrary.model.entity.factory.impl.BookFactory;
 import by.itechart.BookLibrary.model.service.BookService;
 import by.itechart.BookLibrary.model.service.validation.BookValidator;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class BookServiceImpl implements BookService {
     private static final BookDao bookDao = DaoFactory.getInstance().getBookDao();
@@ -40,7 +39,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean update(short bookId, Map<String, String> newFields) throws ServiceException {
         try {
-            if (BookValidator.isBookFormValid(newFields)) {
+//            if (BookValidator.isBookFormValid(newFields)) {
                 Optional<Book> bookOptional = bookDao.findById(bookId);
                 if (bookOptional.isPresent()) {
                     Book book = bookOptional.get();
@@ -51,7 +50,7 @@ public class BookServiceImpl implements BookService {
                         return (bookDao.update(book));
                     }
                 }
-            }
+//            }
         } catch (DaoException e) {
             throw new ServiceException(e);
         }
@@ -96,16 +95,20 @@ public class BookServiceImpl implements BookService {
 
     private void updateBookInfo(Book book, Map<String, String> fields) {
         String newTitle = fields.get(RequestParameter.BOOK_TITLE);
-        String newAuthors = fields.get(RequestParameter.BOOK_AUTHORS);
+
+        String newAuthorsStr = fields.get(RequestParameter.BOOK_AUTHORS);
+        Set<String> newAuthors = Arrays.stream(newAuthorsStr.split(", ")).collect(Collectors.toSet());
+
         String newPublisher = fields.get(RequestParameter.BOOK_PUBLISHER);
         String newPublishDate = fields.get(RequestParameter.BOOK_PUBLISH_DATE);
-        String newGenres = fields.get(RequestParameter.BOOK_GENRES);
+
+        String newGenresStr = fields.get(RequestParameter.BOOK_GENRES);
+        Set<String> newGenres = Arrays.stream(newGenresStr.split(", ")).collect(Collectors.toSet());
+
         short newPageCount = Short.parseShort(fields.get(RequestParameter.BOOK_PAGE_COUNT));
         String newIsbn = fields.get(RequestParameter.BOOK_ISBN);
         short newTotalAmount = Short.parseShort(fields.get(RequestParameter.BOOK_TOTAL_AMOUNT));
         String newDescription = fields.get(RequestParameter.BOOK_DESCRIPTION);
-
-        System.out.println(newDescription);
 
         short remainingAmount  = book.getRemainingAmount();
         String statusPrefix = remainingAmount > 0 ? "Available (" : "Unavailable (";
@@ -120,10 +123,10 @@ public class BookServiceImpl implements BookService {
         String newStatus = statusPrefix + book.getRemainingAmount() + " out of " + newTotalAmount + ")";
 
         book.setTitle(newTitle);
-//        book.setAuthors(newAuthors);
+        book.setAuthors(newAuthors);
         book.setPublisher(newPublisher);
         book.setPublishDate(newPublishDate);
-//        book.setGenres(newGenres);
+        book.setGenres(newGenres);
         book.setPageCount(newPageCount);
         book.setIsbn(newIsbn);
         book.setTotalAmount(newTotalAmount);

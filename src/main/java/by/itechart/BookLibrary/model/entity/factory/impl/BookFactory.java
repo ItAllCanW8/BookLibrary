@@ -30,15 +30,12 @@ public class BookFactory implements EntityFactory<Book> {
 
         String authorsStr = fields.get(RequestParameter.BOOK_AUTHORS);
         Set<String> authors = Arrays.stream(authorsStr.split(", ")).collect(Collectors.toSet());
-        System.out.println(authors);
 
         String publisher = fields.get(RequestParameter.BOOK_PUBLISHER);
         String publishDate = fields.get(RequestParameter.BOOK_PUBLISH_DATE);
 
         String genresStr = fields.get(RequestParameter.BOOK_GENRES);
         Set<String> genres = Arrays.stream(genresStr.split(", ")).collect(Collectors.toSet());
-        System.out.println(genres);
-
 
         short pageCount = Short.parseShort(fields.get(RequestParameter.BOOK_PAGE_COUNT));
         String isbn = fields.get(RequestParameter.BOOK_ISBN);

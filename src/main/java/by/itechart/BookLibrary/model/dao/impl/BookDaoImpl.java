@@ -4,7 +4,9 @@ import by.itechart.BookLibrary.exception.DaoException;
 import by.itechart.BookLibrary.model.connection.DataSource;
 import by.itechart.BookLibrary.model.dao.BookDao;
 import by.itechart.BookLibrary.model.entity.Book;
+import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import static by.itechart.BookLibrary.model.dao.impl.SqlSymbols.*;
@@ -18,7 +20,6 @@ public class BookDaoImpl implements BookDao {
             "?, ?, ? );";
 
     public static final String LOAD_GENRES = "select genre_id, genre from genres WHERE genre LIKE ";
-
     public static final String LOAD_AUTHORS = "select author_id, author from authors WHERE author LIKE ";
 
     public static final String INSERT_GENRES = "INSERT INTO genres(genre) VALUES";
@@ -27,9 +28,13 @@ public class BookDaoImpl implements BookDao {
     public static final String INSERT_BOOK_GENRES = "INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES";
     public static final String INSERT_BOOK_AUTHORS = "INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES";
 
-    public static final String UPDATE = "UPDATE books SET title = ?, authors = ?, publisher = ?, publish_date = ?, " +
-            "genres = ?, page_count = ?, isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ?" +
-            " WHERE book_id = ?;";
+    public static final String UPDATE = "UPDATE books SET title = ?, publisher = ?, publish_date = ?, page_count = ?," +
+            " isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ? WHERE book_id = ?;";
+
+    public static final String LOAD_OLD_BOOK_GENRES = "SELECT book_id_fk, genre_id, genre FROM book_genres" +
+            " JOIN genres ON genre_id = genre_id_fk WHERE book_id_fk = ?; ";
+    public static final String DELETE_OLD_BOOK_GENRES = "DELETE from book_genres WHERE book_id_fk = ?" +
+            " AND genre_id_fk IN (7, 8,9); ";
 
     private static final String SELECT_LIST = "SELECT book_id, title, publish_date, remaining_amount FROM books ";
 
@@ -80,22 +85,22 @@ public class BookDaoImpl implements BookDao {
     @Override
     public boolean add(Book book) throws DaoException {
         try (Connection connection = DataSource.getConnection();
-             PreparedStatement insertBook = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement insertBookSt = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             connection.setAutoCommit(false);
 
-            insertBook.setString(1, book.getCover());
-            insertBook.setString(2, book.getTitle());
-            insertBook.setString(3, book.getPublisher());
-            insertBook.setString(4, book.getPublishDate());
-            insertBook.setShort(5, book.getPageCount());
-            insertBook.setString(6, book.getIsbn());
-            insertBook.setString(7, book.getDescription());
-            insertBook.setShort(8, book.getTotalAmount());
-            insertBook.setShort(9, book.getRemainingAmount());
-            insertBook.setString(10, book.getStatus());
+            insertBookSt.setString(1, book.getCover());
+            insertBookSt.setString(2, book.getTitle());
+            insertBookSt.setString(3, book.getPublisher());
+            insertBookSt.setString(4, book.getPublishDate());
+            insertBookSt.setShort(5, book.getPageCount());
+            insertBookSt.setString(6, book.getIsbn());
+            insertBookSt.setString(7, book.getDescription());
+            insertBookSt.setShort(8, book.getTotalAmount());
+            insertBookSt.setShort(9, book.getRemainingAmount());
+            insertBookSt.setString(10, book.getStatus());
 
-            if (insertBook.executeUpdate() == 1) {
-                ResultSet rsWithBookId = insertBook.getGeneratedKeys();
+            if (insertBookSt.executeUpdate() == 1) {
+                ResultSet rsWithBookId = insertBookSt.getGeneratedKeys();
 
                 if (!rsWithBookId.next()) {
                     throw new DaoException("Adding book failed, no ID obtained.");
@@ -114,6 +119,178 @@ public class BookDaoImpl implements BookDao {
         } catch (SQLException e) {
             throw new DaoException("Error adding a book.", e);
         }
+    }
+
+    @Override
+    public boolean update(Book book) throws DaoException {
+        try (Connection connection = DataSource.getConnection();
+             PreparedStatement updateBookSt = connection.prepareStatement(UPDATE)) {
+            updateBookSt.setString(1, book.getTitle());
+            updateBookSt.setString(2, book.getPublisher());
+            updateBookSt.setString(3, book.getPublishDate());
+            updateBookSt.setShort(4, book.getPageCount());
+            updateBookSt.setString(5, book.getIsbn());
+            updateBookSt.setString(6, book.getDescription());
+            updateBookSt.setShort(7, book.getTotalAmount());
+            updateBookSt.setShort(8, book.getRemainingAmount());
+            updateBookSt.setString(9, book.getStatus());
+            updateBookSt.setShort(10, book.getId());
+
+            if(updateBookSt.executeUpdate() == 1){
+
+            }
+
+            return true;
+        } catch (SQLException e) {
+            throw new DaoException("Error updating book.", e);
+        }
+    }
+
+    @Override
+    public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException {
+        List<Book> books = new ArrayList<>();
+
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            String loadBookListQuery = SELECT_LIST;
+
+            if (filterMode.isPresent()) {
+                loadBookListQuery += "WHERE status LIKE '" + filterMode.get() + "%' ";
+            }
+
+            loadBookListQuery += "ORDER BY remaining_amount ASC LIMIT " + offset + COMMA + recordsPerPage;
+
+            ResultSet rs = statement.executeQuery(loadBookListQuery);
+
+            if (rs.isBeforeFirst()) {
+                StringBuilder loadBookAuthorsQuery = new StringBuilder(LOAD_BOOK_AUTHORS);
+
+                while (rs.next()) {
+                    Book book = createBookFromRS(rs, false);
+                    books.add(book);
+
+                    loadBookAuthorsQuery.append(book.getId());
+
+                    if (!rs.isLast()) {
+                        loadBookAuthorsQuery.append(COMMA);
+                    } else {
+                        loadBookAuthorsQuery.append(RIGHT_PARENTHESIS);
+                    }
+                }
+
+                rs = statement.executeQuery(String.valueOf(loadBookAuthorsQuery));
+                joinBooksWithAuthors(rs, books);
+            }
+        } catch (SQLException e) {
+            throw new DaoException("Error loading books.", e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public int getBookCount() throws DaoException {
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(SELECT_COUNT);
+
+            return (resultSet.next() ? resultSet.getInt(1) : 0);
+        } catch (SQLException | NumberFormatException e) {
+            throw new DaoException("Error getting books count.", e);
+        }
+    }
+
+    @Override
+    public Optional<Book> findById(short bookId) throws DaoException {
+        try (Connection connection = DataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(FIND_BY_ID, ResultSet.TYPE_SCROLL_INSENSITIVE,
+                     ResultSet.CONCUR_UPDATABLE)) {
+            statement.setShort(1, bookId);
+            statement.setShort(2, bookId);
+            ResultSet resultSet = statement.executeQuery();
+
+            return (resultSet.next() ? Optional.of(createBookFromRS(resultSet, true))
+                    : Optional.empty());
+        } catch (SQLException e) {
+            throw new DaoException("Error finding book by id.", e);
+        }
+    }
+
+    @Override
+    public boolean changeBookCover(short bookId, String path) throws DaoException {
+        try (Connection connection = DataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_COVER)) {
+            statement.setString(1, path);
+            statement.setShort(2, bookId);
+
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new DaoException("Error updating book's cover", e);
+        }
+    }
+
+    @Override
+    public boolean isTitleAvailable(String title) throws DaoException {
+        try (Connection connection = DataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(CHECK_TITLE_FOR_EXISTENCE)) {
+            statement.setString(1, title);
+            ResultSet resultSet = statement.executeQuery();
+
+            return !resultSet.next();
+        } catch (SQLException e) {
+            throw new DaoException("Error checking if book title is available.", e);
+        }
+    }
+
+    private void joinBooksWithAuthors(ResultSet rs, List<Book> books) throws SQLException {
+        MultiValuedMap<Short, String> bookAuthors = new HashSetValuedHashMap<>();
+
+        while (rs.next()) {
+            Short bookId = rs.getShort(bookIdFkCol);
+            String author = rs.getString(bookAuthorCol);
+
+            bookAuthors.put(bookId, author);
+        }
+
+        for (Book book : books) {
+            book.setAuthors((Set<String>) bookAuthors.get(book.getId()));
+        }
+    }
+
+    private boolean updateGenres(Connection connection, Book book) throws SQLException {
+        BidiMap<Short, String> oldBookGenres = new DualHashBidiMap<>();
+        Set<String> newBookGenres = book.getGenres();
+
+        try(PreparedStatement loadOldBookGenresSt = connection.prepareStatement(LOAD_OLD_BOOK_GENRES)){
+            loadOldBookGenresSt.setShort(1, book.getId());
+            ResultSet rsWithOldBookGenres = loadOldBookGenresSt.executeQuery();
+
+            while(rsWithOldBookGenres.next()){
+                oldBookGenres.put(rsWithOldBookGenres.getShort(genreIdCol), rsWithOldBookGenres.getString(genreCol));
+            }
+        }
+
+        byte newBookGenresSize = (byte) newBookGenres.size();
+        byte oldBookGenresSize = (byte) oldBookGenres.size();
+
+        if(newBookGenresSize < oldBookGenresSize){
+            Set<Short> genresToDelete = new HashSet<>();
+
+            for(String genre : oldBookGenres.values()){
+                if(!newBookGenres.contains(genre)){
+                    genresToDelete.add(oldBookGenres.getKey(genre));
+                }
+            }
+
+
+        }
+
+
+
+
+
+
+        return true;
     }
 
     private boolean insertGenres(Connection connection, Book book) throws SQLException {
@@ -273,140 +450,6 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-    @Override
-    public boolean update(Book book) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(UPDATE)) {
-            statement.setString(1, book.getTitle());
-//            statement.setString(2, book.getAuthors());
-            statement.setString(3, book.getPublisher());
-            statement.setString(4, book.getPublishDate());
-//            statement.setString(5, book.getGenres());
-            statement.setShort(6, book.getPageCount());
-            statement.setString(7, book.getIsbn());
-            statement.setString(8, book.getDescription());
-            statement.setShort(9, book.getTotalAmount());
-            statement.setShort(10, book.getRemainingAmount());
-            statement.setString(11, book.getStatus());
-            statement.setShort(12, book.getId());
-
-            return statement.executeUpdate() == 1;
-        } catch (SQLException e) {
-            throw new DaoException("Error updating book.", e);
-        }
-    }
-
-    @Override
-    public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException {
-        List<Book> books = new ArrayList<>();
-
-        try (Connection connection = DataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            String loadBookListQuery = SELECT_LIST;
-
-            if (filterMode.isPresent()) {
-                loadBookListQuery += "WHERE status LIKE '" + filterMode.get() + "%' ";
-            }
-
-            loadBookListQuery += "ORDER BY remaining_amount ASC LIMIT " + offset + COMMA + recordsPerPage;
-
-            ResultSet rs = statement.executeQuery(loadBookListQuery);
-
-            if (rs.isBeforeFirst()) {
-                StringBuilder loadBookAuthorsQuery = new StringBuilder(LOAD_BOOK_AUTHORS);
-
-                while (rs.next()) {
-                    Book book = createBookFromRS(rs, false);
-                    books.add(book);
-
-                    loadBookAuthorsQuery.append(book.getId());
-
-                    if (!rs.isLast()) {
-                        loadBookAuthorsQuery.append(COMMA);
-                    } else {
-                        loadBookAuthorsQuery.append(RIGHT_PARENTHESIS);
-                    }
-                }
-
-                rs = statement.executeQuery(String.valueOf(loadBookAuthorsQuery));
-                joinBooksWithAuthors(rs, books);
-            }
-        } catch (SQLException e) {
-            throw new DaoException("Error loading books.", e);
-        }
-
-        return books;
-    }
-
-    @Override
-    public int getBookCount() throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery(SELECT_COUNT);
-
-            return (resultSet.next() ? resultSet.getInt(1) : 0);
-        } catch (SQLException | NumberFormatException e) {
-            throw new DaoException("Error getting books count.", e);
-        }
-    }
-
-    @Override
-    public Optional<Book> findById(short bookId) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(FIND_BY_ID, ResultSet.TYPE_SCROLL_INSENSITIVE,
-                     ResultSet.CONCUR_UPDATABLE)) {
-            statement.setShort(1, bookId);
-            statement.setShort(2, bookId);
-            ResultSet resultSet = statement.executeQuery();
-
-            return (resultSet.next() ? Optional.of(createBookFromRS(resultSet, true))
-                    : Optional.empty());
-        } catch (SQLException e) {
-            throw new DaoException("Error finding book by id.", e);
-        }
-    }
-
-    @Override
-    public boolean changeBookCover(short bookId, String path) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(UPDATE_COVER)) {
-            statement.setString(1, path);
-            statement.setShort(2, bookId);
-
-            return statement.executeUpdate() == 1;
-        } catch (SQLException e) {
-            throw new DaoException("Error updating book's cover", e);
-        }
-    }
-
-    @Override
-    public boolean isTitleAvailable(String title) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(CHECK_TITLE_FOR_EXISTENCE)) {
-            statement.setString(1, title);
-            ResultSet resultSet = statement.executeQuery();
-
-            return !resultSet.next();
-        } catch (SQLException e) {
-            throw new DaoException("Error checking if book title is available.", e);
-        }
-    }
-
-    private void joinBooksWithAuthors(ResultSet rs, List<Book> books) throws SQLException {
-        MultiValuedMap<Short, String> bookAuthors = new HashSetValuedHashMap<>();
-
-        while (rs.next()) {
-            Short bookId = rs.getShort(bookIdFkCol);
-            String author = rs.getString(bookAuthorCol);
-
-            bookAuthors.put(bookId, author);
-        }
-
-        for (Book book : books) {
-            book.setAuthors((Set<String>) bookAuthors.get(book.getId()));
-        }
-    }
-
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
         Book book = new Book(
                 rs.getShort(bookIdCol),
@@ -426,33 +469,18 @@ public class BookDaoImpl implements BookDao {
             Set<String> authors = new HashSet<>();
             Set<String> genres = new HashSet<>();
 
-            String author = rs.getString(bookAuthorCol);
-
-            if (author != null) {
-                authors.add(author);
-            }
-
             do {
                 String genre = rs.getString(bookGenreCol);
+                String author = rs.getString(bookAuthorCol);
 
                 if (genre != null) {
                     genres.add(genre);
                 }
-            } while (rs.next() && rs.getString(bookAuthorCol).equals(author));
 
-            if (genres.size() == 1) {
-                rs.first();
-            }
-
-            while (rs.next()) {
-                String nextAuthor = rs.getString(bookAuthorCol);
-
-                if (author != null && nextAuthor != null && !author.equals(nextAuthor)) {
-                    author = nextAuthor;
-
+                if(author != null){
                     authors.add(author);
                 }
-            }
+            } while (rs.next());
 
             book.setAuthors(authors);
             book.setGenres(genres);
