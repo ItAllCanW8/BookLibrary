@@ -313,15 +313,14 @@ public class BookDaoImpl implements BookDao {
         return true;
     }
 
-    private void insertHelp1(Connection connection, StringBuilder sb, Set<String> newFields, boolean isForGenres,
-                             Map<Short, String> fieldsFromDb) throws SQLException{
+    private void selectRepeatingFieldsFromDb(Connection connection, StringBuilder sb, Set<String> newFields,
+                                             boolean isForGenres, Map<Short, String> fieldsFromDb) throws SQLException{
         byte counter = (byte) newFields.size();
 
         for (String field : newFields) {
             sb.append("'").append(field).append("'");
 
             if (--counter != 0) {
-//                sb.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
                 sb.append(WHITESPACE);
                 if(isForGenres){
                     sb.append("OR genre LIKE");
@@ -349,7 +348,7 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-    private void insertHelp2(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
+    private void insertNewFields(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
             String> fieldsFromDb) throws SQLException {
         byte counter = (byte) (newFields.size() - fieldsFromDb.size());
 
@@ -366,25 +365,26 @@ public class BookDaoImpl implements BookDao {
 
         System.out.println("INSERT NEW GENRES SB " + sb);
 
-        try (Statement insertNewGenresSt = connection.createStatement()) {
-            if (insertNewGenresSt.executeUpdate(sb.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
-                ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
+        try (Statement insertNewFieldsSt = connection.createStatement()) {
+            if (insertNewFieldsSt.executeUpdate(sb.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
+                ResultSet rsWithNewFieldIds = insertNewFieldsSt.getGeneratedKeys();
 
-                if (!rsWithNewGenreIds.next()) {
+                if (!rsWithNewFieldIds.next()) {
                     throw new SQLException("Adding book failed, no ids obtained for new genres or authors.");
                 }
 
                 do {
-                    //save the IDs of the newly inserted genres for further insertion into
-                    // book_genres(book_id_fk, genre_id_fk)
-                    Short newFieldId = rsWithNewGenreIds.getShort(1);
+                    //save the IDs of the newly inserted fields for further insertion into
+                    // book_genres(book_id_fk, genre_id_fk) || book_authors(book_id_fk, author_id_fk)
+                    Short newFieldId = rsWithNewFieldIds.getShort(1);
                     fieldsFromDb.put(newFieldId, "");
-                } while (rsWithNewGenreIds.next());
+                } while (rsWithNewFieldIds.next());
             }
         }
     }
 
-    private boolean insertHelp3(Connection connection,StringBuilder sb, Set<Short> newFieldIds, short bookIdFk) throws SQLException{
+    private boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk)
+            throws SQLException{
         try (Statement insertAllBookGenresSt = connection.createStatement()) {
             String query = prepareQueryFromSB(newFieldIds, sb, bookIdFk);
 
@@ -399,55 +399,18 @@ public class BookDaoImpl implements BookDao {
         Set<String> genres = book.getGenres();
         Map<Short, String> genresFromDb = new HashMap<>();
 
-        insertHelp1(connection,loadGenresSB, genres, true, genresFromDb);
-
-//        byte genresSize = (byte) genres.size();
-//        byte genreCounter = genresSize;
-//
-//        for (String genre : genres) {
-//            loadGenresSB.append("'").append(genre).append("'");
-//
-//            if (--genreCounter != 0) {
-//                loadGenresSB.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
-//            }
-//        }
-//
-//        ResultSet resultSetWithGenres;
-//        Map<Short, String> genresFromDb = new HashMap<>();
-//
-//        System.out.println("LOAD GENRES SB: " + loadGenresSB.toString());
-//
-//        try (PreparedStatement loadGenresSt = connection.prepareStatement(loadGenresSB.toString())) {
-//            resultSetWithGenres = loadGenresSt.executeQuery();
-//
-//            while (resultSetWithGenres.next()) {
-//                genresFromDb.put(resultSetWithGenres.getShort(genreIdCol),
-//                        resultSetWithGenres.getString(genreCol));
-//            }
-//        }
-
-        System.out.println("Genres from db :" + genresFromDb);
+        selectRepeatingFieldsFromDb(connection,loadGenresSB, genres, true, genresFromDb);
 
         byte genresSize = (byte)genres.size();
         byte genresFromDbSize = (byte) genresFromDb.size();
 
-//        Set<Short> newGenreIds = new HashSet<>();
+        Set<Short> newGenreIds = new HashSet<>();
 
 //        if (genresSize > genresFromDbSize || isForUpdate) {
-        if (genresSize > genresFromDbSize) {
+        if (genresSize > genresFromDbSize || isForUpdate) {
             StringBuilder insertNewGenresSB = new StringBuilder(INSERT_GENRES);
 
-            insertHelp2(connection, insertNewGenresSB, genres, genresFromDb);
-//            byte counter = (byte) (genresSize - genresFromDbSize);
-//
-//            for (String genre : genres) {
-//                if (!genresFromDb.containsValue(genre)) {
-//                    insertNewGenresSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
-//                            .append(genre).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
-//
-//                    if (--counter != 0) {
-//                        insertNewGenresSB.append(COMMA);
-//                    }
+            insertNewFields(connection, insertNewGenresSB, genres, genresFromDb);
 //
 ////                    if(isForUpdate){
 ////                        newGenreIds.add(
@@ -482,7 +445,7 @@ public class BookDaoImpl implements BookDao {
 //            }
         }
 
-        return insertHelp3(connection, new StringBuilder(INSERT_BOOK_GENRES), genresFromDb.keySet(), book.getId());
+        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_GENRES), genresFromDb.keySet(), book.getId());
 
 //        try (Statement insertAllBookGenresSt = connection.createStatement()) {
 //            StringBuilder insertBookGenresSB = new StringBuilder(INSERT_BOOK_GENRES);
@@ -531,17 +494,17 @@ public class BookDaoImpl implements BookDao {
         Set<String> authors = book.getAuthors();
         Map<Short, String> authorsFromDb = new HashMap<>();
 
-        insertHelp1(connection,loadAuthorsSB, authors, false, authorsFromDb);
+        selectRepeatingFieldsFromDb(connection,loadAuthorsSB, authors, false, authorsFromDb);
 
         byte authorsSize = (byte) authors.size();
         byte authorsFromDbSize = (byte) authorsFromDb.size();
 
         if (authorsSize > authorsFromDbSize) {
             StringBuilder insertNewAuthorsSB = new StringBuilder(INSERT_AUTHORS);
-            insertHelp2(connection, insertNewAuthorsSB, authors, authorsFromDb);
+            insertNewFields(connection, insertNewAuthorsSB, authors, authorsFromDb);
         }
 
-        return insertHelp3(connection,new StringBuilder(INSERT_BOOK_AUTHORS), authorsFromDb.keySet(), book.getId());
+        return insertBookFields(connection,new StringBuilder(INSERT_BOOK_AUTHORS), authorsFromDb.keySet(), book.getId());
     }
 
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
