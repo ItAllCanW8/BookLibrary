@@ -259,56 +259,71 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
+    private void selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
+                                     String query, short bookId) throws SQLException{
+        try (PreparedStatement st = connection.prepareStatement(query)) {
+            st.setShort(1, bookId);
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                if(isForGenres){
+                    oldBookFields.put(rs.getShort(genreIdCol), rs.getString(genreCol));
+                } else {
+                    oldBookFields.put(rs.getShort(authorIdCol), rs.getString(authorCol));
+                }
+            }
+        }
+    }
+
+    private void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
+                                     StringBuilder sb, short bookId) throws SQLException{
+        Set<Short> fieldIdsToDelete = new HashSet<>();
+
+        for (String field : oldBookFields.values()) {
+            if (!newBookFields.contains(field)) {
+                fieldIdsToDelete.add(oldBookFields.getKey(field));
+            }
+        }
+
+//        StringBuilder deleteOldBookGenresSB = new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS);
+        byte genreIdsCounter = (byte) fieldIdsToDelete.size();
+
+        for (Short genreIdFk : fieldIdsToDelete) {
+            sb.append(genreIdFk);
+
+            if (--genreIdsCounter != 0) {
+                sb.append(COMMA);
+            } else {
+                sb.append(RIGHT_PARENTHESIS);
+            }
+        }
+
+        try (PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(sb.toString())) {
+            deleteOldBookGenresSt.setShort(1, bookId);
+            deleteOldBookGenresSt.executeUpdate();
+
+            connection.commit();
+        }
+    }
+
     private boolean updateGenres(Connection connection, Book book) throws SQLException {
         Set<String> newBookGenres = book.getGenres();
         BidiMap<Short, String> oldBookGenres = new DualHashBidiMap<>();
 
-        try (PreparedStatement loadOldBookGenresSt = connection.prepareStatement(LOAD_OLD_BOOK_GENRES)) {
-            loadOldBookGenresSt.setShort(1, book.getId());
-            ResultSet rsWithOldBookGenres = loadOldBookGenresSt.executeQuery();
-
-            while (rsWithOldBookGenres.next()) {
-                oldBookGenres.put(rsWithOldBookGenres.getShort(genreIdCol), rsWithOldBookGenres.getString(genreCol));
-            }
-        }
+        selectOldBookFields(connection, oldBookGenres, true, LOAD_OLD_BOOK_GENRES, book.getId());
 
 //        if (!newBookGenres.equals(oldBookGenres.values())) {
         System.out.println("old genres " + oldBookGenres);
         System.out.println("new genres " + newBookGenres);
 
-        insertGenres(connection, book, true);
-
         byte newBookGenresSize = (byte) newBookGenres.size();
         byte oldBookGenresSize = (byte) oldBookGenres.size();
 
         if (newBookGenresSize < oldBookGenresSize) {
-            Set<Short> genresToDelete = new HashSet<>();
-
-            for (String genre : oldBookGenres.values()) {
-                if (!newBookGenres.contains(genre)) {
-                    genresToDelete.add(oldBookGenres.getKey(genre));
-                }
-            }
-
-            StringBuilder deleteOldBookGenresSB = new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS);
-            byte genreIdsCounter = (byte) genresToDelete.size();
-
-            for (Short genreIdFk : genresToDelete) {
-                deleteOldBookGenresSB.append(genreIdFk);
-
-                if (--genreIdsCounter != 0) {
-                    deleteOldBookGenresSB.append(COMMA);
-                } else {
-                    deleteOldBookGenresSB.append(RIGHT_PARENTHESIS);
-                }
-            }
-
-            try (PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(deleteOldBookGenresSB.toString())) {
-                deleteOldBookGenresSt.setShort(1, book.getId());
-                deleteOldBookGenresSt.executeUpdate();
-            }
+            deleteOldBookFields(connection, oldBookGenres, newBookGenres,
+                    new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS), book.getId());
         }
-//        }
+//    }
 
         return true;
     }
