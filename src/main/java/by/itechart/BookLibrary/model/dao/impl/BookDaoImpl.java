@@ -108,7 +108,7 @@ public class BookDaoImpl implements BookDao {
 
                 book.setId(rsWithBookId.getShort(1));
 
-                if(insertGenres(connection, book) && insertAuthors(connection, book)){
+                if (insertGenres(connection, book, false) && insertAuthors(connection, book)) {
                     connection.commit();
                 } else {
                     connection.rollback();
@@ -138,7 +138,7 @@ public class BookDaoImpl implements BookDao {
             updateBookSt.setString(9, book.getStatus());
             updateBookSt.setShort(10, book.getId());
 
-            if(updateBookSt.executeUpdate() == 1){
+            if (updateBookSt.executeUpdate() == 1) {
                 updateGenres(connection, book);
             }
 
@@ -263,30 +263,29 @@ public class BookDaoImpl implements BookDao {
         Set<String> newBookGenres = book.getGenres();
         BidiMap<Short, String> oldBookGenres = new DualHashBidiMap<>();
 
-        try(PreparedStatement loadOldBookGenresSt = connection.prepareStatement(LOAD_OLD_BOOK_GENRES)){
+        try (PreparedStatement loadOldBookGenresSt = connection.prepareStatement(LOAD_OLD_BOOK_GENRES)) {
             loadOldBookGenresSt.setShort(1, book.getId());
             ResultSet rsWithOldBookGenres = loadOldBookGenresSt.executeQuery();
 
-            while(rsWithOldBookGenres.next()){
+            while (rsWithOldBookGenres.next()) {
                 oldBookGenres.put(rsWithOldBookGenres.getShort(genreIdCol), rsWithOldBookGenres.getString(genreCol));
             }
         }
 
-        if(newBookGenres.equals(oldBookGenres.values())){
-            System.out.println("EQUALS");
-        }
+//        if (!newBookGenres.equals(oldBookGenres.values())) {
+        System.out.println("old genres " + oldBookGenres);
+        System.out.println("new genres " + newBookGenres);
 
-        System.out.println("old genres "+ oldBookGenres);
-        System.out.println("new genres "+ newBookGenres);
+        insertGenres(connection, book, true);
 
         byte newBookGenresSize = (byte) newBookGenres.size();
         byte oldBookGenresSize = (byte) oldBookGenres.size();
 
-        if(newBookGenresSize < oldBookGenresSize){
+        if (newBookGenresSize < oldBookGenresSize) {
             Set<Short> genresToDelete = new HashSet<>();
 
-            for(String genre : oldBookGenres.values()){
-                if(!newBookGenres.contains(genre)){
+            for (String genre : oldBookGenres.values()) {
+                if (!newBookGenres.contains(genre)) {
                     genresToDelete.add(oldBookGenres.getKey(genre));
                 }
             }
@@ -294,180 +293,255 @@ public class BookDaoImpl implements BookDao {
             StringBuilder deleteOldBookGenresSB = new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS);
             byte genreIdsCounter = (byte) genresToDelete.size();
 
-            for(Short genreIdFk : genresToDelete){
+            for (Short genreIdFk : genresToDelete) {
                 deleteOldBookGenresSB.append(genreIdFk);
 
-                if(--genreIdsCounter != 0){
+                if (--genreIdsCounter != 0) {
                     deleteOldBookGenresSB.append(COMMA);
                 } else {
                     deleteOldBookGenresSB.append(RIGHT_PARENTHESIS);
                 }
             }
 
-            try(PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(deleteOldBookGenresSB.toString())){
+            try (PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(deleteOldBookGenresSB.toString())) {
                 deleteOldBookGenresSt.setShort(1, book.getId());
                 deleteOldBookGenresSt.executeUpdate();
             }
         }
+//        }
 
         return true;
     }
 
-    private boolean insertGenres(Connection connection, Book book) throws SQLException {
+    private void insertHelp1(Connection connection, StringBuilder sb, Set<String> newFields, boolean isForGenres,
+                             Map<Short, String> fieldsFromDb) throws SQLException{
+        byte counter = (byte) newFields.size();
+
+        for (String field : newFields) {
+            sb.append("'").append(field).append("'");
+
+            if (--counter != 0) {
+//                sb.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
+                sb.append(WHITESPACE);
+                if(isForGenres){
+                    sb.append("OR genre LIKE");
+                } else {
+                    sb.append("OR author LIKE");
+                }
+                sb.append(WHITESPACE);
+            }
+        }
+
+        ResultSet rs;
+
+        try (PreparedStatement statement = connection.prepareStatement(sb.toString())) {
+            rs = statement.executeQuery();
+
+            while (rs.next()) {
+                if(isForGenres){
+                    fieldsFromDb.put(rs.getShort(genreIdCol),
+                            rs.getString(genreCol));
+                } else {
+                    fieldsFromDb.put(rs.getShort(authorIdCol),
+                            rs.getString(authorCol));
+                }
+            }
+        }
+    }
+
+    private void insertHelp2(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
+            String> fieldsFromDb) throws SQLException {
+        byte counter = (byte) (newFields.size() - fieldsFromDb.size());
+
+        for (String field : newFields) {
+            if (!fieldsFromDb.containsValue(field)) {
+                sb.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
+                        .append(field).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
+
+                if (--counter != 0) {
+                    sb.append(COMMA);
+                }
+            }
+        }
+
+        System.out.println("INSERT NEW GENRES SB " + sb);
+
+        try (Statement insertNewGenresSt = connection.createStatement()) {
+            if (insertNewGenresSt.executeUpdate(sb.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
+                ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
+
+                if (!rsWithNewGenreIds.next()) {
+                    throw new SQLException("Adding book failed, no ids obtained for new genres or authors.");
+                }
+
+                do {
+                    //save the IDs of the newly inserted genres for further insertion into
+                    // book_genres(book_id_fk, genre_id_fk)
+                    Short newFieldId = rsWithNewGenreIds.getShort(1);
+                    fieldsFromDb.put(newFieldId, "");
+                } while (rsWithNewGenreIds.next());
+            }
+        }
+    }
+
+    private boolean insertHelp3(Connection connection,StringBuilder sb, Set<Short> newFieldIds, short bookIdFk) throws SQLException{
+        try (Statement insertAllBookGenresSt = connection.createStatement()) {
+            String query = prepareQueryFromSB(newFieldIds, sb, bookIdFk);
+
+            System.out.println("QUERY "+query);
+
+            return insertAllBookGenresSt.executeUpdate(query) > 0;
+        }
+    }
+
+    private boolean insertGenres(Connection connection, Book book, boolean isForUpdate) throws SQLException {
         StringBuilder loadGenresSB = new StringBuilder(LOAD_GENRES);
         Set<String> genres = book.getGenres();
-
-        byte genresSize = (byte) genres.size();
-        byte genreCounter = genresSize;
-
-        for (String genre : genres) {
-            loadGenresSB.append("'").append(genre).append("'");
-
-            if (--genreCounter != 0) {
-                loadGenresSB.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
-            }
-        }
-
-        ResultSet resultSetWithGenres;
         Map<Short, String> genresFromDb = new HashMap<>();
 
-        try (PreparedStatement loadGenresSt = connection.prepareStatement(loadGenresSB.toString())) {
-            resultSetWithGenres = loadGenresSt.executeQuery();
+        insertHelp1(connection,loadGenresSB, genres, true, genresFromDb);
 
-            while (resultSetWithGenres.next()) {
-                genresFromDb.put(resultSetWithGenres.getShort(genreIdCol),
-                        resultSetWithGenres.getString(genreCol));
-            }
-        }
+//        byte genresSize = (byte) genres.size();
+//        byte genreCounter = genresSize;
+//
+//        for (String genre : genres) {
+//            loadGenresSB.append("'").append(genre).append("'");
+//
+//            if (--genreCounter != 0) {
+//                loadGenresSB.append(WHITESPACE).append("OR genre LIKE").append(WHITESPACE);
+//            }
+//        }
+//
+//        ResultSet resultSetWithGenres;
+//        Map<Short, String> genresFromDb = new HashMap<>();
+//
+//        System.out.println("LOAD GENRES SB: " + loadGenresSB.toString());
+//
+//        try (PreparedStatement loadGenresSt = connection.prepareStatement(loadGenresSB.toString())) {
+//            resultSetWithGenres = loadGenresSt.executeQuery();
+//
+//            while (resultSetWithGenres.next()) {
+//                genresFromDb.put(resultSetWithGenres.getShort(genreIdCol),
+//                        resultSetWithGenres.getString(genreCol));
+//            }
+//        }
 
+        System.out.println("Genres from db :" + genresFromDb);
+
+        byte genresSize = (byte)genres.size();
         byte genresFromDbSize = (byte) genresFromDb.size();
 
+//        Set<Short> newGenreIds = new HashSet<>();
+
+//        if (genresSize > genresFromDbSize || isForUpdate) {
         if (genresSize > genresFromDbSize) {
             StringBuilder insertNewGenresSB = new StringBuilder(INSERT_GENRES);
-            byte counter = (byte) (genresSize - genresFromDbSize);
 
-            for (String genre : genres) {
-                if (!genresFromDb.containsValue(genre)) {
-                    insertNewGenresSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
-                            .append(genre).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
+            insertHelp2(connection, insertNewGenresSB, genres, genresFromDb);
+//            byte counter = (byte) (genresSize - genresFromDbSize);
+//
+//            for (String genre : genres) {
+//                if (!genresFromDb.containsValue(genre)) {
+//                    insertNewGenresSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
+//                            .append(genre).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
+//
+//                    if (--counter != 0) {
+//                        insertNewGenresSB.append(COMMA);
+//                    }
+//
+////                    if(isForUpdate){
+////                        newGenreIds.add(
+////                                genresFromDb
+////                                        .entrySet()
+////                                        .stream()
+////                                        .filter(entry -> Objects.equals(entry.getValue(), genre))
+////                                        .map(Map.Entry::getKey)
+////                                        .findFirst().get());
+////                    }
+//                }
+//            }
+//
+//            System.out.println("INSERT NEW GENRES SB " + insertNewGenresSB);
+//
+//            try (Statement insertNewGenresSt = connection.createStatement()) {
+//                if (insertNewGenresSt.executeUpdate(insertNewGenresSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
+////                if (newGenreIds.size() > 0 && insertNewGenresSt.executeUpdate(insertNewGenresSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
+//                    ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
+//
+//                    do {
+//                        //save the IDs of the newly inserted genres for further insertion into
+//                        // book_genres(book_id_fk, genre_id_fk)
+//                        Short newGenreId = rsWithNewGenreIds.getShort(1);
+//                        genresFromDb.put(newGenreId, "");
+//
+////                        if(isForUpdate){
+////                            newGenreIds.add(newGenreId);
+////                        }
+//                    } while (rsWithNewGenreIds.next());
+//                }
+//            }
+        }
 
-                    if (--counter != 0) {
-                        insertNewGenresSB.append(COMMA);
-                    }
-                }
-            }
+        return insertHelp3(connection, new StringBuilder(INSERT_BOOK_GENRES), genresFromDb.keySet(), book.getId());
 
-            try (Statement insertNewGenresSt = connection.createStatement()) {
-                if (insertNewGenresSt.executeUpdate(insertNewGenresSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
-                    ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
+//        try (Statement insertAllBookGenresSt = connection.createStatement()) {
+//            StringBuilder insertBookGenresSB = new StringBuilder(INSERT_BOOK_GENRES);
+//            short bookIdFk = book.getId();
+//
+////            byte counter = (byte) genresFromDb.size();
+////
+////            for (Short genreIdFk : genresFromDb.keySet()) {
+////                insertBookGenresSB.append(LEFT_PARENTHESIS).append(bookIdFk).append(COMMA)
+////                        .append(genreIdFk).append(RIGHT_PARENTHESIS);
+////
+////                if (--counter != 0) {
+////                    insertBookGenresSB.append(COMMA);
+////                }
+////            }
+//
+////            String query = !isForUpdate ? prepareQueryFromSB(genresFromDb.keySet(), insertBookGenresSB, bookIdFk) :
+////                    prepareQueryFromSB(newGenreIds, insertBookGenresSB, bookIdFk);
+//
+//            String query = prepareQueryFromSB(genresFromDb.keySet(), insertBookGenresSB, bookIdFk);
+//
+//            System.out.println("QUERY "+query);
+//
+//            return insertAllBookGenresSt.executeUpdate(query) > 0;
+////            return insertAllBookGenresSt.executeUpdate(insertBookGenresSB.toString()) > 0;
+//        }
+    }
 
-                    if (!rsWithNewGenreIds.next()) {
-                        throw new SQLException("Adding book failed, no IDs obtained for new genres.");
-                    }
+    private String prepareQueryFromSB(Set<Short> ids, StringBuilder stringBuilder, short bookIdFk){
+        byte counter = (byte) ids.size();
 
-                    do {
-                        //save the IDs of the newly inserted genres for further insertion into
-                        // book_genres(book_id_fk, genre_id_fk)
-                        genresFromDb.put(rsWithNewGenreIds.getShort(1), "");
-                    } while (rsWithNewGenreIds.next());
-                }
+        for (Short genreIdFk : ids) {
+            stringBuilder.append(LEFT_PARENTHESIS).append(bookIdFk).append(COMMA)
+                    .append(genreIdFk).append(RIGHT_PARENTHESIS);
+
+            if (--counter != 0) {
+                stringBuilder.append(COMMA);
             }
         }
 
-        try(Statement insertAllBookGenres = connection.createStatement()){
-            StringBuilder insertBookGenresSB = new StringBuilder(INSERT_BOOK_GENRES);
-            short bookIdFk = book.getId();
-            byte counter = (byte) genresFromDb.size();
-
-            for (Short genreIdFk : genresFromDb.keySet()){
-                insertBookGenresSB.append(LEFT_PARENTHESIS).append(bookIdFk).append(COMMA)
-                        .append(genreIdFk).append(RIGHT_PARENTHESIS);
-
-                if(--counter != 0){
-                    insertBookGenresSB.append(COMMA);
-                }
-            }
-
-            return insertAllBookGenres.executeUpdate(insertBookGenresSB.toString()) > 0;
-        }
+        return stringBuilder.toString();
     }
 
     private boolean insertAuthors(Connection connection, Book book) throws SQLException {
         StringBuilder loadAuthorsSB = new StringBuilder(LOAD_AUTHORS);
         Set<String> authors = book.getAuthors();
-
-        byte authorsSize = (byte) authors.size();
-        byte authorCounter = authorsSize;
-
-        for (String genre : authors) {
-            loadAuthorsSB.append("'").append(genre).append("'");
-            if (--authorCounter != 0) {
-                loadAuthorsSB.append(WHITESPACE).append("OR author LIKE").append(WHITESPACE);
-            }
-        }
-
-        ResultSet resultSetWithAuthors;
         Map<Short, String> authorsFromDb = new HashMap<>();
 
-        try (PreparedStatement loadAuthorsStatement = connection.prepareStatement(loadAuthorsSB.toString())) {
-            resultSetWithAuthors = loadAuthorsStatement.executeQuery();
+        insertHelp1(connection,loadAuthorsSB, authors, false, authorsFromDb);
 
-            while (resultSetWithAuthors.next()) {
-                authorsFromDb.put(resultSetWithAuthors.getShort(authorIdCol),
-                        resultSetWithAuthors.getString(authorCol));
-            }
-        }
-
+        byte authorsSize = (byte) authors.size();
         byte authorsFromDbSize = (byte) authorsFromDb.size();
 
         if (authorsSize > authorsFromDbSize) {
             StringBuilder insertNewAuthorsSB = new StringBuilder(INSERT_AUTHORS);
-            byte counter = (byte) (authorsSize - authorsFromDbSize);
-
-            for (String author : authors) {
-                if (!authorsFromDb.containsValue(author)) {
-                    insertNewAuthorsSB.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
-                            .append(author).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
-
-                    if (--counter != 0) {
-                        insertNewAuthorsSB.append(COMMA);
-                    }
-                }
-            }
-
-            try (Statement insertNewAuthorsSt = connection.createStatement()) {
-                if (insertNewAuthorsSt.executeUpdate(insertNewAuthorsSB.toString(), Statement.RETURN_GENERATED_KEYS) > 0) {
-                    ResultSet rsWithNewAuthorIds = insertNewAuthorsSt.getGeneratedKeys();
-
-                    if (!rsWithNewAuthorIds.next()) {
-                        throw new SQLException("Adding book failed, no IDs obtained for new authors.");
-                    }
-
-                    do {
-                        //save the IDs of the newly inserted authors for further insertion into
-                        // book_authors(book_id_fk, author_id_fk)
-                        authorsFromDb.put(rsWithNewAuthorIds.getShort(1), "");
-                    } while (rsWithNewAuthorIds.next());
-                }
-            }
+            insertHelp2(connection, insertNewAuthorsSB, authors, authorsFromDb);
         }
 
-        try(Statement insertAllBookAuthorsSt = connection.createStatement()){
-            StringBuilder insertBookAuthorsSB = new StringBuilder(INSERT_BOOK_AUTHORS);
-            short bookIdFk = book.getId();
-            byte counter = (byte) authorsFromDb.size();
-
-            for (Short authorIdFk : authorsFromDb.keySet()){
-                insertBookAuthorsSB.append(LEFT_PARENTHESIS).append(bookIdFk).append(COMMA)
-                        .append(authorIdFk).append(RIGHT_PARENTHESIS);
-
-                if(--counter != 0){
-                    insertBookAuthorsSB.append(COMMA);
-                }
-            }
-
-            return insertAllBookAuthorsSt.executeUpdate(insertBookAuthorsSB.toString()) > 0;
-        }
+        return insertHelp3(connection,new StringBuilder(INSERT_BOOK_AUTHORS), authorsFromDb.keySet(), book.getId());
     }
 
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
@@ -497,7 +571,7 @@ public class BookDaoImpl implements BookDao {
                     genres.add(genre);
                 }
 
-                if(author != null){
+                if (author != null) {
                     authors.add(author);
                 }
             } while (rs.next());
