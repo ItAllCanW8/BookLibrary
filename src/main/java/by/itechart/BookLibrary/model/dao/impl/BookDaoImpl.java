@@ -108,14 +108,15 @@ public class BookDaoImpl implements BookDao {
 
                 book.setId(rsWithBookId.getShort(1));
 
-                if (insertGenres(connection, book, false) && insertAuthors(connection, book)) {
+                if (insertGenres(connection, book, Optional.empty()) && insertAuthors(connection, book)) {
                     connection.commit();
+                    return true;
                 } else {
                     connection.rollback();
                 }
             }
 
-            return true;
+            return false;
         } catch (SQLException e) {
             throw new DaoException("Error adding a book.", e);
         }
@@ -139,10 +140,14 @@ public class BookDaoImpl implements BookDao {
             updateBookSt.setShort(10, book.getId());
 
             if (updateBookSt.executeUpdate() == 1) {
-                updateGenres(connection, book);
+               if( updateGenres(connection, book)){
+                   connection.commit();
+               } else {
+                   connection.rollback();
+               }
             }
 
-            return true;
+            return false;
         } catch (SQLException e) {
             throw new DaoException("Error updating book.", e);
         }
@@ -260,13 +265,13 @@ public class BookDaoImpl implements BookDao {
     }
 
     private void selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
-                                     String query, short bookId) throws SQLException{
+                                     String query, short bookId) throws SQLException {
         try (PreparedStatement st = connection.prepareStatement(query)) {
             st.setShort(1, bookId);
             ResultSet rs = st.executeQuery();
 
             while (rs.next()) {
-                if(isForGenres){
+                if (isForGenres) {
                     oldBookFields.put(rs.getShort(genreIdCol), rs.getString(genreCol));
                 } else {
                     oldBookFields.put(rs.getShort(authorIdCol), rs.getString(authorCol));
@@ -276,7 +281,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     private void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
-                                     StringBuilder sb, short bookId) throws SQLException{
+                                     StringBuilder sb, short bookId) throws SQLException {
         Set<Short> fieldIdsToDelete = new HashSet<>();
 
         for (String field : oldBookFields.values()) {
@@ -301,8 +306,6 @@ public class BookDaoImpl implements BookDao {
         try (PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(sb.toString())) {
             deleteOldBookGenresSt.setShort(1, bookId);
             deleteOldBookGenresSt.executeUpdate();
-
-            connection.commit();
         }
     }
 
@@ -312,24 +315,31 @@ public class BookDaoImpl implements BookDao {
 
         selectOldBookFields(connection, oldBookGenres, true, LOAD_OLD_BOOK_GENRES, book.getId());
 
-//        if (!newBookGenres.equals(oldBookGenres.values())) {
-        System.out.println("old genres " + oldBookGenres);
-        System.out.println("new genres " + newBookGenres);
+        if (!newBookGenres.equals(oldBookGenres.values())) {
+            System.out.println("old genres " + oldBookGenres);
+            System.out.println("new genres " + newBookGenres);
 
-        byte newBookGenresSize = (byte) newBookGenres.size();
-        byte oldBookGenresSize = (byte) oldBookGenres.size();
+            byte newBookGenresSize = (byte) newBookGenres.size();
+            byte oldBookGenresSize = (byte) oldBookGenres.size();
 
-        if (newBookGenresSize < oldBookGenresSize) {
-            deleteOldBookFields(connection, oldBookGenres, newBookGenres,
-                    new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS), book.getId());
+//            if (newBookGenresSize < oldBookGenresSize) {
+                deleteOldBookFields(connection, oldBookGenres, newBookGenres,
+                        new StringBuilder(DELETE_OLD_BOOK_GENRES + LEFT_PARENTHESIS), book.getId());
+//            }
         }
-//    }
 
-        return true;
+        Set<String> genresToInsertForUpd = new HashSet<>();
+        for (String genre : newBookGenres) {
+            if (!oldBookGenres.containsValue(genre)) {
+                genresToInsertForUpd.add(genre);
+            }
+        }
+
+        return insertGenres(connection, book, Optional.of(genresToInsertForUpd));
     }
 
     private void selectRepeatingFieldsFromDb(Connection connection, StringBuilder sb, Set<String> newFields,
-                                             boolean isForGenres, Map<Short, String> fieldsFromDb) throws SQLException{
+                                             boolean isForGenres, Map<Short, String> fieldsFromDb) throws SQLException {
         byte counter = (byte) newFields.size();
 
         for (String field : newFields) {
@@ -337,7 +347,7 @@ public class BookDaoImpl implements BookDao {
 
             if (--counter != 0) {
                 sb.append(WHITESPACE);
-                if(isForGenres){
+                if (isForGenres) {
                     sb.append("OR genre LIKE");
                 } else {
                     sb.append("OR author LIKE");
@@ -352,7 +362,7 @@ public class BookDaoImpl implements BookDao {
             rs = statement.executeQuery();
 
             while (rs.next()) {
-                if(isForGenres){
+                if (isForGenres) {
                     fieldsFromDb.put(rs.getShort(genreIdCol),
                             rs.getString(genreCol));
                 } else {
@@ -364,7 +374,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     private void insertNewFields(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
-            String> fieldsFromDb) throws SQLException {
+            String> fieldsFromDb, boolean isForUpdate) throws SQLException {
         byte counter = (byte) (newFields.size() - fieldsFromDb.size());
 
         for (String field : newFields) {
@@ -375,7 +385,21 @@ public class BookDaoImpl implements BookDao {
                 if (--counter != 0) {
                     sb.append(COMMA);
                 }
+
+//                if(isForUpdate){
+//                        newGenreIds.add(
+//                                genresFromDb
+//                                        .entrySet()
+//                                        .stream()
+//                                        .filter(entry -> Objects.equals(entry.getValue(), genre))
+//                                        .map(Map.Entry::getKey)
+//                                        .findFirst().get());
+//                    }
             }
+        }
+
+        if (isForUpdate) {
+            fieldsFromDb.clear();
         }
 
         System.out.println("INSERT NEW GENRES SB " + sb);
@@ -399,33 +423,69 @@ public class BookDaoImpl implements BookDao {
     }
 
     private boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk)
-            throws SQLException{
+            throws SQLException {
         try (Statement insertAllBookGenresSt = connection.createStatement()) {
             String query = prepareQueryFromSB(newFieldIds, sb, bookIdFk);
 
-            System.out.println("QUERY "+query);
+            System.out.println("QUERY " + query);
 
             return insertAllBookGenresSt.executeUpdate(query) > 0;
         }
     }
 
-    private boolean insertGenres(Connection connection, Book book, boolean isForUpdate) throws SQLException {
+    private boolean insertGenres(Connection connection, Book book, Optional<Set<String>> genresToInsForUpdOpt) throws SQLException {
         StringBuilder loadGenresSB = new StringBuilder(LOAD_GENRES);
-        Set<String> genres = book.getGenres();
+        Set<String> newGenres = book.getGenres();
         Map<Short, String> genresFromDb = new HashMap<>();
 
-        selectRepeatingFieldsFromDb(connection,loadGenresSB, genres, true, genresFromDb);
+        selectRepeatingFieldsFromDb(connection, loadGenresSB, newGenres, true, genresFromDb);
 
-        byte genresSize = (byte)genres.size();
+        System.out.println("Genre from db " + genresFromDb);
+        boolean isForUpdate = genresToInsForUpdOpt.isPresent();
+        Set<Short> genreIdsToInsert = new HashSet<>();
+        if (isForUpdate) {
+            System.out.println("GEnres to insert " + genresToInsForUpdOpt.get());
+            Set<String> genreToInsForUpd = genresToInsForUpdOpt.get();
+
+            for (String genre : genresFromDb.values()) {
+                if (genreToInsForUpd.contains(genre)) {
+                    genreIdsToInsert.add(genresFromDb
+                            .entrySet()
+                            .stream()
+                            .filter(entry -> Objects.equals(entry.getValue(), genre))
+                            .map(Map.Entry::getKey)
+                            .findAny().get());
+                }
+            }
+        }
+
+
+//        Set<Short> genreIds = new HashSet<>();
+        // получить айди тех жанров из genresFromDb которых нет в newGenres ????????
+//        if(isForUpdate){
+//            for (String genre : newGenres) {
+//                if (!genresFromDb.containsValue(genre)) {
+//                    genreIds.add(genresFromDb
+//                            .entrySet()
+//                            .stream()
+//                            .filter(entry -> Objects.equals(entry.getValue(), genre))
+//                            .map(Map.Entry::getKey)
+//                            .findAny().get());
+//                }
+//            }
+//            System.out.println("GENRE IDS " + genreIds);
+//        }
+
+        byte genresSize = (byte) newGenres.size();
         byte genresFromDbSize = (byte) genresFromDb.size();
 
-        Set<Short> newGenreIds = new HashSet<>();
+        //Set<Short> newGenreIds = new HashSet<>();
 
 //        if (genresSize > genresFromDbSize || isForUpdate) {
         if (genresSize > genresFromDbSize || isForUpdate) {
             StringBuilder insertNewGenresSB = new StringBuilder(INSERT_GENRES);
 
-            insertNewFields(connection, insertNewGenresSB, genres, genresFromDb);
+            insertNewFields(connection, insertNewGenresSB, newGenres, genresFromDb, isForUpdate);
 //
 ////                    if(isForUpdate){
 ////                        newGenreIds.add(
@@ -447,7 +507,7 @@ public class BookDaoImpl implements BookDao {
 //                    ResultSet rsWithNewGenreIds = insertNewGenresSt.getGeneratedKeys();
 //
 //                    do {
-//                        //save the IDs of the newly inserted genres for further insertion into
+//                        //save the IDs of the newly inserted newGenres for further insertion into
 //                        // book_genres(book_id_fk, genre_id_fk)
 //                        Short newGenreId = rsWithNewGenreIds.getShort(1);
 //                        genresFromDb.put(newGenreId, "");
@@ -460,7 +520,9 @@ public class BookDaoImpl implements BookDao {
 //            }
         }
 
-        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_GENRES), genresFromDb.keySet(), book.getId());
+        genreIdsToInsert.addAll(genresFromDb.keySet());
+
+        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_GENRES), genreIdsToInsert, book.getId());
 
 //        try (Statement insertAllBookGenresSt = connection.createStatement()) {
 //            StringBuilder insertBookGenresSB = new StringBuilder(INSERT_BOOK_GENRES);
@@ -489,7 +551,7 @@ public class BookDaoImpl implements BookDao {
 //        }
     }
 
-    private String prepareQueryFromSB(Set<Short> ids, StringBuilder stringBuilder, short bookIdFk){
+    private String prepareQueryFromSB(Set<Short> ids, StringBuilder stringBuilder, short bookIdFk) {
         byte counter = (byte) ids.size();
 
         for (Short genreIdFk : ids) {
@@ -509,17 +571,17 @@ public class BookDaoImpl implements BookDao {
         Set<String> authors = book.getAuthors();
         Map<Short, String> authorsFromDb = new HashMap<>();
 
-        selectRepeatingFieldsFromDb(connection,loadAuthorsSB, authors, false, authorsFromDb);
+        selectRepeatingFieldsFromDb(connection, loadAuthorsSB, authors, false, authorsFromDb);
 
         byte authorsSize = (byte) authors.size();
         byte authorsFromDbSize = (byte) authorsFromDb.size();
 
         if (authorsSize > authorsFromDbSize) {
             StringBuilder insertNewAuthorsSB = new StringBuilder(INSERT_AUTHORS);
-            insertNewFields(connection, insertNewAuthorsSB, authors, authorsFromDb);
+            insertNewFields(connection, insertNewAuthorsSB, authors, authorsFromDb, false);
         }
 
-        return insertBookFields(connection,new StringBuilder(INSERT_BOOK_AUTHORS), authorsFromDb.keySet(), book.getId());
+        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_AUTHORS), authorsFromDb.keySet(), book.getId());
     }
 
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
