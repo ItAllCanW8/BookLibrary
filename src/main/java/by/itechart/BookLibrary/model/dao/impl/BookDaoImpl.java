@@ -88,11 +88,8 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public boolean add(Book book) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement insertBookSt = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
-            connection.setAutoCommit(false);
-
+    public boolean add(Connection connection, Book book) {
+        try (PreparedStatement insertBookSt = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             insertBookSt.setString(1, book.getCover());
             insertBookSt.setString(2, book.getTitle());
             insertBookSt.setString(3, book.getPublisher());
@@ -103,37 +100,33 @@ public class BookDaoImpl implements BookDao {
             insertBookSt.setShort(8, book.getTotalAmount());
             insertBookSt.setShort(9, book.getRemainingAmount());
             insertBookSt.setString(10, book.getStatus());
+            insertBookSt.executeUpdate();
 
-            if (insertBookSt.executeUpdate() == 1) {
-                ResultSet rsWithBookId = insertBookSt.getGeneratedKeys();
+            ResultSet rsWithBookId = insertBookSt.getGeneratedKeys();
 
-                if (!rsWithBookId.next()) {
-                    throw new DaoException("Adding book failed, no ID obtained.");
-                }
-
-                book.setId(rsWithBookId.getShort(1));
-
-                if (insertFields(connection, book, Optional.empty(), true) &&
-                        insertFields(connection, book, Optional.empty(), false)) {
-                    connection.commit();
-                    return true;
-                } else {
-                    connection.rollback();
-                }
+            if (!rsWithBookId.next()) {
+                throw new DaoException("Adding book failed, no ID obtained.");
             }
 
-            return false;
+            book.setId(rsWithBookId.getShort(1));
+
+            return true;
+
+//            if (insertFields(connection, book, Optional.empty(), true) &&
+//                    insertFields(connection, book, Optional.empty(), false)) {
+//                connection.commit();
+//                return true;
+//            } else {
+//                connection.rollback();
+//            }
         } catch (SQLException e) {
-            throw new DaoException("Error adding a book.", e);
+            throw new DaoException("Error adding a book." + e);
         }
     }
 
     @Override
-    public boolean update(Book book) throws DaoException {
-        try (Connection connection = DataSource.getConnection();
-             PreparedStatement updateBookSt = connection.prepareStatement(UPDATE)) {
-            connection.setAutoCommit(false);
-
+    public boolean update(Connection connection, Book book) {
+        try (PreparedStatement updateBookSt = connection.prepareStatement(UPDATE)) {
             updateBookSt.setString(1, book.getTitle());
             updateBookSt.setString(2, book.getPublisher());
             updateBookSt.setString(3, book.getPublishDate());
@@ -145,22 +138,14 @@ public class BookDaoImpl implements BookDao {
             updateBookSt.setString(9, book.getStatus());
             updateBookSt.setShort(10, book.getId());
 
-            if (updateBookSt.executeUpdate() == 1) {
-                if (updateFields(connection, book, true) && updateFields(connection, book, false)) {
-                    connection.commit();
-                } else {
-                    connection.rollback();
-                }
-            }
-
-            return false;
+            return updateBookSt.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new DaoException("Error updating book.", e);
         }
     }
 
     @Override
-    public List<Book> loadBookList(int offset, int recordsPerPage, Optional<String> filterMode) throws DaoException {
+    public List<Book> loadBooks(int offset, int recordsPerPage, Optional<String> filterMode) {
         List<Book> books = new ArrayList<>();
 
         try (Connection connection = DataSource.getConnection();
@@ -202,7 +187,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public int getBookCount() throws DaoException {
+    public int getBookCount() {
         try (Connection connection = DataSource.getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(SELECT_COUNT);
@@ -214,7 +199,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public Optional<Book> findById(short bookId) throws DaoException {
+    public Optional<Book> findById(short bookId) {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(FIND_BY_ID, ResultSet.TYPE_SCROLL_INSENSITIVE,
                      ResultSet.CONCUR_UPDATABLE)) {
@@ -230,7 +215,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public boolean changeBookCover(short bookId, String path) throws DaoException {
+    public boolean changeBookCover(short bookId, String path) {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPDATE_COVER)) {
             statement.setString(1, path);
@@ -243,7 +228,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public boolean isTitleAvailable(String title) throws DaoException {
+    public boolean isTitleAvailable(String title) {
         try (Connection connection = DataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(CHECK_TITLE_FOR_EXISTENCE)) {
             statement.setString(1, title);
@@ -270,8 +255,9 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-    private void selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
-                                     String query, short bookId) throws SQLException {
+    @Override
+    public boolean selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
+                                     String query, short bookId) {
         try (PreparedStatement st = connection.prepareStatement(query)) {
             st.setShort(1, bookId);
             ResultSet rs = st.executeQuery();
@@ -283,11 +269,15 @@ public class BookDaoImpl implements BookDao {
                     oldBookFields.put(rs.getShort(authorIdCol), rs.getString(authorCol));
                 }
             }
+        } catch (SQLException e){
+            throw new DaoException("Error loading old book fields", e);
         }
+        return true;
     }
 
-    private void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
-                                     StringBuilder sb, short bookId) throws SQLException {
+    @Override
+    public void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
+                                     StringBuilder sb, short bookId) {
         Set<Short> fieldIdsToDelete = new HashSet<>();
 
         for (String field : oldBookFields.values()) {
@@ -309,55 +299,58 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            try (PreparedStatement deleteOldBookGenresSt = connection.prepareStatement(sb.toString())) {
-                deleteOldBookGenresSt.setShort(1, bookId);
-                deleteOldBookGenresSt.executeUpdate();
+            try (PreparedStatement deleteOldBookFieldsSt = connection.prepareStatement(sb.toString())) {
+                deleteOldBookFieldsSt.setShort(1, bookId);
+                deleteOldBookFieldsSt.executeUpdate();
+            } catch (SQLException e){
+                throw new DaoException("Error deleting old book fields", e);
             }
         }
     }
 
-    private boolean updateFields(Connection connection, Book book, boolean isForGenres) throws SQLException {
-        Set<String> newBookFields;
-        BidiMap<Short, String> oldBookFields = new DualHashBidiMap<>();
-        String loadFieldsQuery;
-        String deleteFieldsQuery;
+//    private boolean updateFields(Connection connection, Book book, boolean isForGenres) throws SQLException {
+//        Set<String> newBookFields;
+//        BidiMap<Short, String> oldBookFields = new DualHashBidiMap<>();
+//        String loadFieldsQuery;
+//        String deleteFieldsQuery;
+//
+//        if (isForGenres) {
+//            newBookFields = book.getGenres();
+//            loadFieldsQuery = LOAD_OLD_BOOK_GENRES;
+//            deleteFieldsQuery = DELETE_OLD_BOOK_GENRES;
+//        } else {
+//            newBookFields = book.getAuthors();
+//            loadFieldsQuery = LOAD_OLD_BOOK_AUTHORS;
+//            deleteFieldsQuery = DELETE_OLD_BOOK_AUTHORS;
+//        }
+//
+//        selectOldBookFields(connection, oldBookFields, isForGenres, loadFieldsQuery, book.getId());
+//
+//        boolean result = true;
+//
+//        if (!newBookFields.equals(oldBookFields.values())) {
+//            deleteOldBookFields(connection, oldBookFields, newBookFields,
+//                    new StringBuilder(deleteFieldsQuery + LEFT_PARENTHESIS), book.getId());
+//
+//            Set<String> fieldsToInsertForUpd = new HashSet<>();
+//            for (String field : newBookFields) {
+//                if (!oldBookFields.containsValue(field.toLowerCase())) {
+//                    fieldsToInsertForUpd.add(field);
+//                }
+//            }
+//
+//            if (fieldsToInsertForUpd.size() > 0) {
+//                result = isForGenres ? insertFields(connection, book, Optional.of(fieldsToInsertForUpd), true) :
+//                        insertFields(connection, book, Optional.of(fieldsToInsertForUpd), false);
+//            }
+//        }
+//
+//        return result;
+//    }
 
-        if (isForGenres) {
-            newBookFields = book.getGenres();
-            loadFieldsQuery = LOAD_OLD_BOOK_GENRES;
-            deleteFieldsQuery = DELETE_OLD_BOOK_GENRES;
-        } else {
-            newBookFields = book.getAuthors();
-            loadFieldsQuery = LOAD_OLD_BOOK_AUTHORS;
-            deleteFieldsQuery = DELETE_OLD_BOOK_AUTHORS;
-        }
-
-        selectOldBookFields(connection, oldBookFields, isForGenres, loadFieldsQuery, book.getId());
-
-        boolean result = true;
-
-        if (!newBookFields.equals(oldBookFields.values())) {
-            deleteOldBookFields(connection, oldBookFields, newBookFields,
-                    new StringBuilder(deleteFieldsQuery + LEFT_PARENTHESIS), book.getId());
-
-            Set<String> fieldsToInsertForUpd = new HashSet<>();
-            for (String field : newBookFields) {
-                if (!oldBookFields.containsValue(field)) {
-                    fieldsToInsertForUpd.add(field);
-                }
-            }
-
-            if(fieldsToInsertForUpd.size() > 0){
-                result = isForGenres ? insertFields(connection, book, Optional.of(fieldsToInsertForUpd), true) :
-                        insertFields(connection, book, Optional.of(fieldsToInsertForUpd), false);
-            }
-        }
-
-        return result;
-    }
-
-    private void selectRepeatingFieldsFromDb(Connection connection, StringBuilder sb, Set<String> newFields,
-                                             boolean isForGenres, Map<Short, String> fieldsFromDb) throws SQLException {
+    @Override
+    public boolean selectRepeatingFields(Connection connection, StringBuilder sb, Set<String> newFields,
+                                         boolean isForGenres, Map<Short, String> fieldsFromDb) {
         byte counter = (byte) newFields.size();
 
         for (String field : newFields) {
@@ -380,24 +373,28 @@ public class BookDaoImpl implements BookDao {
             while (rs.next()) {
                 if (isForGenres) {
                     fieldsFromDb.put(rs.getShort(genreIdCol),
-                            rs.getString(genreCol));
+                            rs.getString(genreCol).toLowerCase());
                 } else {
                     fieldsFromDb.put(rs.getShort(authorIdCol),
-                            rs.getString(authorCol));
+                            rs.getString(authorCol).toLowerCase());
                 }
             }
+        } catch (SQLException e) {
+            throw new DaoException("Error loading repeating fields", e);
         }
+        return true;
     }
 
-    private boolean insertNewFields(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
-            String> fieldsFromDb, boolean isForUpdate) throws SQLException {
+    @Override
+    public boolean insertNewFields(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
+            String> fieldsFromDb, boolean isForUpdate) {
         byte counter = (byte) (newFields.size() - fieldsFromDb.size());
 
         boolean result = false;
 
         if (counter > 0) {
             for (String field : newFields) {
-                if (!fieldsFromDb.containsValue(field)) {
+                if (!fieldsFromDb.containsValue(field.toLowerCase())) {
                     sb.append(WHITESPACE).append(LEFT_PARENTHESIS).append(APOSTROPHE)
                             .append(field).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
 
@@ -426,111 +423,76 @@ public class BookDaoImpl implements BookDao {
                         fieldsFromDb.put(newFieldId, "");
                     } while (rsWithNewFieldIds.next());
                 }
+            } catch (SQLException e) {
+                throw new DaoException("Error inserting new fields", e);
             }
             result = true;
         }
         return result;
     }
 
-    private boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk)
-            throws SQLException {
+    @Override
+    public boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk) {
         try (Statement insertAllBookGenresSt = connection.createStatement()) {
             String query = prepareQueryFromSB(newFieldIds, sb, bookIdFk);
 
             return insertAllBookGenresSt.executeUpdate(query) > 0;
+        } catch (SQLException e) {
+            throw new DaoException("Error inserting book fields", e);
         }
     }
 
-    private boolean insertFields(Connection connection, Book book, Optional<Set<String>> fieldsToInsForUpdOpt,
-                                 boolean isForGenres) throws SQLException {
-        Set<String> newFields;
-        String loadFieldsQuery;
-        String insertFieldsQuery;
-        String insertBookFieldsQuery;
+//    @Override
+//    public boolean insertFields(Connection connection, Book book, Optional<Set<String>> fieldsToInsForUpdOpt,
+//                                boolean isForGenres) throws SQLException {
+//        Set<String> newFields;
+//        String loadFieldsQuery;
+//        String insertFieldsQuery;
+//        String insertBookFieldsQuery;
+//
+//        if (isForGenres) {
+//            newFields = book.getGenres();
+//            loadFieldsQuery = LOAD_GENRES;
+//            insertFieldsQuery = INSERT_GENRES;
+//            insertBookFieldsQuery = INSERT_BOOK_GENRES;
+//        } else {
+//            newFields = book.getAuthors();
+//            loadFieldsQuery = LOAD_AUTHORS;
+//            insertFieldsQuery = INSERT_AUTHORS;
+//            insertBookFieldsQuery = INSERT_BOOK_AUTHORS;
+//        }
+//
+//        Map<Short, String> fieldsFromDb = new HashMap<>();
+//
+//        selectRepeatingFields(connection, new StringBuilder(loadFieldsQuery), newFields, isForGenres, fieldsFromDb);
+//
+//        boolean isForUpdate = fieldsToInsForUpdOpt.isPresent();
+//        Set<Short> fieldIdsToInsert = new HashSet<>();
+//
+//        if (isForUpdate) {
+//            Set<String> fieldsToInsForUpd = fieldsToInsForUpdOpt.get();
+//
+//            for (String field : fieldsFromDb.values()) {
+//                if (fieldsToInsForUpd.contains(field)) {
+//                    fieldIdsToInsert.add(fieldsFromDb
+//                            .entrySet()
+//                            .stream()
+//                            .filter(entry -> Objects.equals(entry.getValue(), field))
+//                            .map(Map.Entry::getKey)
+//                            .findFirst().get());
+//                }
+//            }
+//        }
+//
+//        if (newFields.size() > fieldsFromDb.size() || isForUpdate) {
+//            if (insertNewFields(connection, new StringBuilder(insertFieldsQuery), newFields, fieldsFromDb, isForUpdate)) {
+//                fieldIdsToInsert.addAll(fieldsFromDb.keySet());
+//            }
+//        }
+//
+//        return insertBookFields(connection, new StringBuilder(insertBookFieldsQuery), fieldIdsToInsert, book.getId());
+//    }
 
-        if(isForGenres){
-            newFields = book.getGenres();
-            loadFieldsQuery = LOAD_GENRES;
-            insertFieldsQuery = INSERT_GENRES;
-            insertBookFieldsQuery = INSERT_BOOK_GENRES;
-        } else {
-            newFields = book.getAuthors();
-            loadFieldsQuery = LOAD_AUTHORS;
-            insertFieldsQuery = INSERT_AUTHORS;
-            insertBookFieldsQuery = INSERT_BOOK_AUTHORS;
-        }
-
-        Map<Short, String> fieldsFromDb = new HashMap<>();
-
-        selectRepeatingFieldsFromDb(connection, new StringBuilder(loadFieldsQuery), newFields, isForGenres, fieldsFromDb);
-
-        boolean isForUpdate = fieldsToInsForUpdOpt.isPresent();
-        Set<Short> fielIdsToInsert = new HashSet<>();
-
-        if (isForUpdate) {
-            Set<String> fieldsToInsForUpd = fieldsToInsForUpdOpt.get();
-
-            for (String field : fieldsFromDb.values()) {
-                if (fieldsToInsForUpd.contains(field)) {
-                    fielIdsToInsert.add(fieldsFromDb
-                            .entrySet()
-                            .stream()
-                            .filter(entry -> Objects.equals(entry.getValue(), field))
-                            .map(Map.Entry::getKey)
-                            .findFirst().get());
-                }
-            }
-        }
-
-//        byte fieldsSize = (byte) newFields.size();
-//        byte genresFromDbSize = (byte) fieldsFromDb.size();
-
-//        if (fieldsSize > genresFromDbSize || isForUpdate) {
-        if (newFields.size() > fieldsFromDb.size() || isForUpdate) {
-            if(insertNewFields(connection, new StringBuilder(insertFieldsQuery), newFields, fieldsFromDb, isForUpdate)){
-                fielIdsToInsert.addAll(fieldsFromDb.keySet());
-            }
-        }
-
-        return insertBookFields(connection, new StringBuilder(insertBookFieldsQuery), fielIdsToInsert, book.getId());
-    }
-/*
-    private boolean insertGenres(Connection connection, Book book, Optional<Set<String>> genresToInsForUpdOpt) throws SQLException {
-        Set<String> newGenres = book.getGenres();
-        Map<Short, String> genresFromDb = new HashMap<>();
-
-        selectRepeatingFieldsFromDb(connection, new StringBuilder(LOAD_GENRES), newGenres, true, genresFromDb);
-
-        boolean isForUpdate = genresToInsForUpdOpt.isPresent();
-        Set<Short> genreIdsToInsert = new HashSet<>();
-
-        if (isForUpdate) {
-            Set<String> genreToInsForUpd = genresToInsForUpdOpt.get();
-
-            for (String genre : genresFromDb.values()) {
-                if (genreToInsForUpd.contains(genre)) {
-                    genreIdsToInsert.add(genresFromDb
-                            .entrySet()
-                            .stream()
-                            .filter(entry -> Objects.equals(entry.getValue(), genre))
-                            .map(Map.Entry::getKey)
-                            .findFirst().get());
-                }
-            }
-        }
-
-        byte genresSize = (byte) newGenres.size();
-        byte genresFromDbSize = (byte) genresFromDb.size();
-
-        if (genresSize > genresFromDbSize || isForUpdate) {
-            if(insertNewFields(connection, new StringBuilder(INSERT_GENRES), newGenres, genresFromDb, isForUpdate)){
-                genreIdsToInsert.addAll(genresFromDb.keySet());
-            }
-        }
-
-        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_GENRES), genreIdsToInsert, book.getId());
-    }
-*/
     private String prepareQueryFromSB(Set<Short> ids, StringBuilder stringBuilder, short bookIdFk) {
         byte counter = (byte) ids.size();
 
@@ -545,43 +507,7 @@ public class BookDaoImpl implements BookDao {
 
         return stringBuilder.toString();
     }
-/*
-    private boolean insertAuthors(Connection connection, Book book, Optional<Set<String>> authorsToInsForUpdOpt) throws SQLException {
-        Set<String> authors = book.getAuthors();
-        Map<Short, String> authorsFromDb = new HashMap<>();
 
-        selectRepeatingFieldsFromDb(connection, new StringBuilder(LOAD_AUTHORS), authors, false, authorsFromDb);
-
-        boolean isForUpdate = authorsToInsForUpdOpt.isPresent();
-        Set<Short> authorIdsToInsert = new HashSet<>();
-
-        if (isForUpdate) {
-            Set<String> authorsToInsForUpd = authorsToInsForUpdOpt.get();
-
-            for (String author : authorsFromDb.values()) {
-                if (authorsToInsForUpd.contains(author)) {
-                    authorIdsToInsert.add(authorsFromDb
-                            .entrySet()
-                            .stream()
-                            .filter(entry -> Objects.equals(entry.getValue(), author))
-                            .map(Map.Entry::getKey)
-                            .findFirst().get());
-                }
-            }
-        }
-
-        byte authorsSize = (byte) authors.size();
-        byte authorsFromDbSize = (byte) authorsFromDb.size();
-
-        if (authorsSize > authorsFromDbSize || isForUpdate) {
-            if(insertNewFields(connection, new StringBuilder(INSERT_AUTHORS), authors, authorsFromDb, isForUpdate)){
-                authorIdsToInsert.addAll(authorsFromDb.keySet());
-            }
-        }
-
-        return insertBookFields(connection, new StringBuilder(INSERT_BOOK_AUTHORS), authorIdsToInsert, book.getId());
-    }
-*/
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
         Book book = new Book(
                 rs.getShort(bookIdCol),

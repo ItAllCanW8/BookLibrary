@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class BookPage implements Command {
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
 
         CommandResult result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);

@@ -1,6 +1,6 @@
 package by.itechart.BookLibrary.exception;
 
-public class DaoException extends Exception {
+public class DaoException extends RuntimeException {
     public DaoException() {
         super();
     }

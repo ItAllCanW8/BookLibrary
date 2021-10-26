@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class Home implements Command {
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         BookService service = ServiceFactory.getInstance().getBookService();
 
         try {
@@ -33,7 +33,7 @@ public class Home implements Command {
             int bookCount = service.getBookCount();
             int numberOfPages = (int) Math.ceil(bookCount * 1.0 / recordsPerPage);
 
-            List<Book> books = service.loadBookList((page - 1) * recordsPerPage, recordsPerPage, filterModeOptional);
+            List<Book> books = service.loadBooks((page - 1) * recordsPerPage, recordsPerPage, filterModeOptional);
             if (books.size() > 0) {
                 req.setAttribute(RequestParameter.BOOKS, books);
                 req.setAttribute(RequestParameter.NUMBER_OF_PAGES, numberOfPages);
