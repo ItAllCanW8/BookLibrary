@@ -11,6 +11,7 @@ import by.itechart.BookLibrary.model.entity.Book;
 import by.itechart.BookLibrary.model.entity.factory.EntityFactory;
 import by.itechart.BookLibrary.model.entity.factory.impl.BookFactory;
 import by.itechart.BookLibrary.model.service.BookService;
+import by.itechart.BookLibrary.model.service.validation.BookValidator;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
@@ -31,30 +32,76 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean add(Map<String, String> fields) {
         boolean result = false;
-        Optional<Book> bookOptional = bookFactory.create(fields);
+
+//        if (BookValidator.isBookFormValid(fields)) {
+            Optional<Book> bookOptional = bookFactory.create(fields);
+
+            if (bookOptional.isPresent()) {
+                Book book = bookOptional.get();
+
+                if (bookDao.isTitleAvailable(fields.get(RequestParameter.BOOK_TITLE))) {
+                    try (Connection connection = DataSource.getConnection()) {
+                        connection.setAutoCommit(false);
+
+                        if (bookDao.add(connection, book)
+                                && insertFields(connection, book, Optional.empty(), true)
+                                && insertFields(connection, book, Optional.empty(), false)) {
+
+                            connection.commit();
+                            result = true;
+                        } else {
+                            connection.rollback();
+                        }
+                    } catch (DaoException | NumberFormatException | SQLException e) {
+                        throw new ServiceException(e);
+                    }
+                }
+            }
+//        }
+        return result;
+    }
+
+    @Override
+    public boolean update(short bookId, Map<String, String> newFields) {
+//            if (BookValidator.isBookFormValid(newFields)) {
+        boolean result = false;
+        Optional<Book> bookOptional = bookDao.findById(bookId);
 
         if (bookOptional.isPresent()) {
             Book book = bookOptional.get();
 
-            if (bookDao.isTitleAvailable(fields.get(RequestParameter.BOOK_TITLE))) {
+            if (book.getTitle().equals(newFields.get(RequestParameter.BOOK_TITLE)) ||
+                    bookDao.isTitleAvailable(newFields.get(RequestParameter.BOOK_TITLE))) {
+
+                updateBookInfo(book, newFields);
                 try (Connection connection = DataSource.getConnection()) {
                     connection.setAutoCommit(false);
 
-                    if (bookDao.add(connection, book)
-                            && insertFields(connection, book, Optional.empty(), true)
-                            && insertFields(connection, book, Optional.empty(), false)) {
-
+                    if (bookDao.update(connection, book)
+                            && updateFields(connection, book, true)
+                            && updateFields(connection, book, false)) {
                         connection.commit();
                         result = true;
                     } else {
                         connection.rollback();
                     }
-                } catch (DaoException | NumberFormatException | SQLException e) {
+                } catch (DaoException | SQLException e) {
                     throw new ServiceException(e);
                 }
             }
         }
+//    }
+
         return result;
+    }
+
+    @Override
+    public boolean delete(Set<Short> bookIds) {
+        try{
+            return bookDao.delete(bookIds);
+        } catch (DaoException e){
+            throw new ServiceException(e);
+        }
     }
 
     private boolean insertFields(Connection connection, Book book, Optional<Set<String>> fieldsToInsForUpdOpt,
@@ -107,40 +154,6 @@ public class BookServiceImpl implements BookService {
         return bookDao.insertBookFields(connection, new StringBuilder(insertBookFieldsQuery), fieldIdsToInsert, book.getId());
     }
 
-    @Override
-    public boolean update(short bookId, Map<String, String> newFields) {
-//            if (BookValidator.isBookFormValid(newFields)) {
-        boolean result = false;
-        Optional<Book> bookOptional = bookDao.findById(bookId);
-
-        if (bookOptional.isPresent()) {
-            Book book = bookOptional.get();
-
-            if (book.getTitle().equals(newFields.get(RequestParameter.BOOK_TITLE)) ||
-                    bookDao.isTitleAvailable(newFields.get(RequestParameter.BOOK_TITLE))) {
-
-                updateBookInfo(book, newFields);
-                try (Connection connection = DataSource.getConnection()) {
-                    connection.setAutoCommit(false);
-
-                    if (bookDao.update(connection, book)
-                            && updateFields(connection, book, true)
-                            && updateFields(connection, book, false)) {
-                        connection.commit();
-                        result = true;
-                    } else {
-                        connection.rollback();
-                    }
-                } catch (DaoException | SQLException e) {
-                    throw new ServiceException(e);
-                }
-            }
-        }
-//    }
-
-        return result;
-    }
-
     private boolean updateFields(Connection connection, Book book, boolean isForGenres) throws SQLException {
         Set<String> newBookFields;
         BidiMap<Short, String> oldBookFields = new DualHashBidiMap<>();
@@ -169,6 +182,8 @@ public class BookServiceImpl implements BookService {
                     fieldsToInsertForUpd.add(field);
                 }
             }
+
+            //TODO fix bugs with "field.toLowerCase()"
 
             if (fieldsToInsertForUpd.size() > 0) {
                 result = isForGenres ? insertFields(connection, book, Optional.of(fieldsToInsertForUpd), true) :

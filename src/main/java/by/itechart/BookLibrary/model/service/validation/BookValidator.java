@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 public class BookValidator {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Pattern TITLE_PATTERN = Pattern.compile("[А-Яа-я\\w\\p{Blank}.,]{3,255}");
+//    private static final Pattern TITLE_PATTERN = Pattern.compile("([А-Яа-я\\w])");
     private static final Pattern AUTHORS_PATTERN = Pattern.compile("[\\[]?[А-Яа-яa-zA-Z.]{3,255}[,\\p{Blank}]?[]]?");
     private static final Pattern PUBLISHER_PATTERN = Pattern.compile("[А-Яа-я\\w\\p{Blank}.,]{3,45}");
     private static final Pattern GENRES_PATTERN = Pattern.compile("[\\[]?([a-zA-Z.]{3,255}[,\\p{Blank}]?){1,10}[]]?");

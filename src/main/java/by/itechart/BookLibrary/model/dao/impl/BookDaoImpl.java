@@ -28,6 +28,8 @@ public class BookDaoImpl implements BookDao {
     public static final String INSERT_BOOK_GENRES = "INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES";
     public static final String INSERT_BOOK_AUTHORS = "INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES";
 
+    public static final String DELETE = "DELETE FROM books WHERE book_id IN(";
+
     public static final String UPDATE = "UPDATE books SET title = ?, publisher = ?, publish_date = ?, page_count = ?," +
             " isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ? WHERE book_id = ?;";
 
@@ -308,46 +310,6 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-//    private boolean updateFields(Connection connection, Book book, boolean isForGenres) throws SQLException {
-//        Set<String> newBookFields;
-//        BidiMap<Short, String> oldBookFields = new DualHashBidiMap<>();
-//        String loadFieldsQuery;
-//        String deleteFieldsQuery;
-//
-//        if (isForGenres) {
-//            newBookFields = book.getGenres();
-//            loadFieldsQuery = LOAD_OLD_BOOK_GENRES;
-//            deleteFieldsQuery = DELETE_OLD_BOOK_GENRES;
-//        } else {
-//            newBookFields = book.getAuthors();
-//            loadFieldsQuery = LOAD_OLD_BOOK_AUTHORS;
-//            deleteFieldsQuery = DELETE_OLD_BOOK_AUTHORS;
-//        }
-//
-//        selectOldBookFields(connection, oldBookFields, isForGenres, loadFieldsQuery, book.getId());
-//
-//        boolean result = true;
-//
-//        if (!newBookFields.equals(oldBookFields.values())) {
-//            deleteOldBookFields(connection, oldBookFields, newBookFields,
-//                    new StringBuilder(deleteFieldsQuery + LEFT_PARENTHESIS), book.getId());
-//
-//            Set<String> fieldsToInsertForUpd = new HashSet<>();
-//            for (String field : newBookFields) {
-//                if (!oldBookFields.containsValue(field.toLowerCase())) {
-//                    fieldsToInsertForUpd.add(field);
-//                }
-//            }
-//
-//            if (fieldsToInsertForUpd.size() > 0) {
-//                result = isForGenres ? insertFields(connection, book, Optional.of(fieldsToInsertForUpd), true) :
-//                        insertFields(connection, book, Optional.of(fieldsToInsertForUpd), false);
-//            }
-//        }
-//
-//        return result;
-//    }
-
     @Override
     public boolean selectRepeatingFields(Connection connection, StringBuilder sb, Set<String> newFields,
                                          boolean isForGenres, Map<Short, String> fieldsFromDb) {
@@ -442,56 +404,35 @@ public class BookDaoImpl implements BookDao {
         }
     }
 
-//    @Override
-//    public boolean insertFields(Connection connection, Book book, Optional<Set<String>> fieldsToInsForUpdOpt,
-//                                boolean isForGenres) throws SQLException {
-//        Set<String> newFields;
-//        String loadFieldsQuery;
-//        String insertFieldsQuery;
-//        String insertBookFieldsQuery;
-//
-//        if (isForGenres) {
-//            newFields = book.getGenres();
-//            loadFieldsQuery = LOAD_GENRES;
-//            insertFieldsQuery = INSERT_GENRES;
-//            insertBookFieldsQuery = INSERT_BOOK_GENRES;
-//        } else {
-//            newFields = book.getAuthors();
-//            loadFieldsQuery = LOAD_AUTHORS;
-//            insertFieldsQuery = INSERT_AUTHORS;
-//            insertBookFieldsQuery = INSERT_BOOK_AUTHORS;
-//        }
-//
-//        Map<Short, String> fieldsFromDb = new HashMap<>();
-//
-//        selectRepeatingFields(connection, new StringBuilder(loadFieldsQuery), newFields, isForGenres, fieldsFromDb);
-//
-//        boolean isForUpdate = fieldsToInsForUpdOpt.isPresent();
-//        Set<Short> fieldIdsToInsert = new HashSet<>();
-//
-//        if (isForUpdate) {
-//            Set<String> fieldsToInsForUpd = fieldsToInsForUpdOpt.get();
-//
-//            for (String field : fieldsFromDb.values()) {
-//                if (fieldsToInsForUpd.contains(field)) {
-//                    fieldIdsToInsert.add(fieldsFromDb
-//                            .entrySet()
-//                            .stream()
-//                            .filter(entry -> Objects.equals(entry.getValue(), field))
-//                            .map(Map.Entry::getKey)
-//                            .findFirst().get());
-//                }
-//            }
-//        }
-//
-//        if (newFields.size() > fieldsFromDb.size() || isForUpdate) {
-//            if (insertNewFields(connection, new StringBuilder(insertFieldsQuery), newFields, fieldsFromDb, isForUpdate)) {
-//                fieldIdsToInsert.addAll(fieldsFromDb.keySet());
-//            }
-//        }
-//
-//        return insertBookFields(connection, new StringBuilder(insertBookFieldsQuery), fieldIdsToInsert, book.getId());
-//    }
+    @Override
+    public boolean delete(Set<Short> bookIds) {
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            connection.setAutoCommit(false);
+            StringBuilder deleteBooksSb = new StringBuilder(DELETE);
+
+            byte counter = (byte) bookIds.size();
+            for(Short bookId : bookIds){
+                deleteBooksSb.append(bookId);
+
+                if(--counter != 0){
+                    deleteBooksSb.append(COMMA);
+                } else {
+                    deleteBooksSb.append(RIGHT_PARENTHESIS);
+                }
+            }
+
+            if(statement.executeUpdate(deleteBooksSb.toString()) >0){
+                System.out.println("BOOKS DELETED");
+            }
+
+
+//            return statement.executeUpdate(deleteBooksSb.toString()) > 0;
+            return true;
+        } catch (SQLException e) {
+            throw new DaoException("Error deleting books.", e);
+        }
+    }
 
     private String prepareQueryFromSB(Set<Short> ids, StringBuilder stringBuilder, short bookIdFk) {
         byte counter = (byte) ids.size();

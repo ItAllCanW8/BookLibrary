@@ -4,6 +4,7 @@ public class RequestParameter {
     public static final String BOOKS = "books";
     public static final String BOOK = "book";
     public static final String BOOK_ID = "bookId";
+    public static final String BOOK_IDS = "bookIds";
     public static final String BOOK_TITLE = "bookTitle";
     public static final String BOOK_AUTHORS = "bookAuthors";
     public static final String BOOK_PUBLISHER = "bookPublisher";

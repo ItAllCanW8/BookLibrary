@@ -66,7 +66,7 @@
     <div class="container">
         <div class="heading_container">
             <h3>
-                Book List
+                Books
             </h3>
 
             <hr style="width:100%;text-align:left;margin-left:0">
@@ -77,14 +77,11 @@
                        role="button" style="width: 40%" aria-pressed="true">Add book</a>
                 </div>
 
-                <%--                <button type="button" class="btn btn-secondary" data-bs-toggle="modal"--%>
-                <%--                        data-bs-target="#editProfileModal">--%>
-                <%--                    <fmt:message key="button.edit"/>--%>
-                <%--                </button>--%>
-
                 <div style="display: flex;justify-content: center">
-                    <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-danger"
-                       role="button" style="width: 40%; margin-top: 1%; margin-bottom: 1%" aria-pressed="true">Delete Books</a>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#deleteBooksModal" style="width: 40%; margin-top: 1%; margin-bottom: 1%">
+                        Delete Books
+                    </button>
                 </div>
 
                 <div class="col-2" style="display: flex;justify-content: center">
@@ -158,6 +155,35 @@
                 </tbody>
             </table>
 
+            <div class="modal fade" id="deleteBooksModal" tabindex="-1" role="dialog"
+                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Delete books</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <form method="post" id="deleteBooksForm"
+                                  action="${pageContext.request.contextPath}/delete_books.do?bookIds=">
+                                <c:forEach var="book" items="${books}">
+                                    <div>
+                                        <label for="${book.id}">Title: ${book.title}</label>
+                                        <input type="checkbox" id="${book.id}" style="float:right">
+                                    </div>
+                                </c:forEach>
+                            </form>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
+                            </button>
+                            <button type="button" class="btn btn-primary" id="deleteBooksButt">Delete selected</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <c:if test="${currentPage != 1}">
                 <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">Previous</a>
                 </th>
@@ -187,6 +213,37 @@
         </div>
     </div>
 </section>
+
+<script type="application/javascript">
+    function deleteCheckedBooks(e) {
+        e.preventDefault();
+
+        let checkedBooks = [];
+        let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
+
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkedBooks.push(checkboxes[i].id);
+        }
+
+        let deleteBooksForm = document.getElementById('deleteBooksForm');
+        deleteBooksForm.action += checkedBooks;
+
+        if(checkedBooks.length !== 0){
+            deleteBooksForm.submit();
+        } else{
+            alert("CHECK SOME BOOKS");
+        }
+    }
+
+    // function deleteCheckedBooks(checkedBooks) {
+    //     let xhr = new XMLHttpRequest();
+    //     xhr.open('POST', 'delete_books.do?bookIds=' + checkedBooks, true);
+    //     xhr.send();
+    // }
+
+    let deleteBooksButt = document.getElementById('deleteBooksButt');
+    deleteBooksButt.addEventListener('click', deleteCheckedBooks);
+</script>
 
 </body>
 
