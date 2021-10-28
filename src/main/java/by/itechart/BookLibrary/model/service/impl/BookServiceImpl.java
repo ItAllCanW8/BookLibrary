@@ -178,12 +178,10 @@ public class BookServiceImpl implements BookService {
 
             Set<String> fieldsToInsertForUpd = new HashSet<>();
             for (String field : newBookFields) {
-                if (!oldBookFields.containsValue(field.toLowerCase())) {
-                    fieldsToInsertForUpd.add(field);
+                if (!oldBookFields.containsValue(field)) {
+                    fieldsToInsertForUpd.add(field.toLowerCase());
                 }
             }
-
-            //TODO fix bugs with "field.toLowerCase()"
 
             if (fieldsToInsertForUpd.size() > 0) {
                 result = isForGenres ? insertFields(connection, book, Optional.of(fieldsToInsertForUpd), true) :

@@ -1,6 +1,5 @@
 package by.itechart.BookLibrary.controller.command.impl;
 
-import by.itechart.BookLibrary.controller.attribute.PagePath;
 import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.controller.command.Command;
 import by.itechart.BookLibrary.controller.command.CommandResult;
@@ -11,7 +10,6 @@ import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,6 +18,8 @@ public class DeleteBooks implements Command {
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) {
         String bookIdsStr = req.getParameter(RequestParameter.BOOK_IDS);
         CommandResult result = new CommandResult(CommandResult.DEFAULT_PATH, CommandResult.Type.FORWARD);
+
+        //TODO pass bookIds in body
 
         if(!bookIdsStr.isEmpty()){
             Set<Short> bookIds = new HashSet<>();

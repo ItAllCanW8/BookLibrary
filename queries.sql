@@ -12,13 +12,15 @@ use book_library;
 
 SELECT book_id, title, author, publish_date, remaining_amount FROM book_authors JOIN books ON book_id_fk = book_id JOIN authors ON author_id_fk = author_id ORDER BY remaining_amount ASC LIMIT 100 OFFSET 0;
  
-SELECT book_id_fk, author, author_id FROM book_authors JOIN authors ON author_id = author_id_fk  WHERE book_id_fk = 13;
+SELECT book_id_fk, author, author_id FROM book_authors JOIN authors ON author_id = author_id_fk WHERE book_id_fk = 14;
 DELETE from book_authors WHERE book_id_fk = 13 AND author_id_fk IN(3, 5,7);
 INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES (13, 3); 
 
-SELECT book_id_fk, genre, genre_id FROM book_genres JOIN genres ON genre_id = genre_id_fk  WHERE book_id_fk = 13; 
+SELECT book_id_fk, genre, genre_id FROM book_genres JOIN genres ON genre_id = genre_id_fk  WHERE book_id_fk = 14; 
 DELETE from book_genres WHERE book_id_fk = 13 AND genre_id_fk IN(7, 8, 9);
 INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES (13, 9);
+ 
+select genre_id, genre from genres WHERE genre LIKE 'action' OR genre LIKE 'qqq' OR genre LIKE 'quis';
  
 SELECT book_id, title, author, publish_date, remaining_amount FROM books
  JOIN book_authors ON book_id_fk = book_id
@@ -79,7 +81,7 @@ WITH fields_and_authors AS
              JOIN genres ON genre_id_fk = genre_id WHERE book_id = 13)
              SELECT * FROM fields_and_authors JOIN genres;
        
-       
+DELETE FROM books WHERE book_id IN(1,2,3);
 
 
 SELECT q1.title,q1.genre, q2.author FROM (SELECT DISTINCT title, genre FROM book_genres JOIN books ON book_id_fk = book_id JOIN genres ON genre_id_fk = genre_id) as q1, (SELECT DISTINCT author FROM book_authors JOIN books ON book_id_fk = book_id JOIN authors ON author_id_fk = author_id) as q2;       
