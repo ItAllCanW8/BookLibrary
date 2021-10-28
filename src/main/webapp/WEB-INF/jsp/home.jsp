@@ -165,13 +165,14 @@
 
                         <div class="modal-body">
                             <form method="post" id="deleteBooksForm"
-                                  action="${pageContext.request.contextPath}/delete_books.do?bookIds=">
+                                  action="${pageContext.request.contextPath}/delete_books.do">
                                 <c:forEach var="book" items="${books}">
                                     <div>
                                         <label for="${book.id}">Title: ${book.title}</label>
                                         <input type="checkbox" id="${book.id}" style="float:right">
                                     </div>
                                 </c:forEach>
+                                <input type="hidden" name="bookIds" id="bookIdsInput">
                             </form>
                         </div>
 
@@ -225,11 +226,13 @@
             checkedBooks.push(checkboxes[i].id);
         }
 
-        let deleteBooksForm = document.getElementById('deleteBooksForm');
-        deleteBooksForm.action += checkedBooks;
+        let bookIdsInput = document.getElementById('bookIdsInput');
+        bookIdsInput.value = checkedBooks;
+
+        // deleteBooksForm.action += checkedBooks;
 
         if(checkedBooks.length !== 0){
-            deleteBooksForm.submit();
+            document.getElementById('deleteBooksForm').submit();
         } else{
             alert("CHECK SOME BOOKS");
         }

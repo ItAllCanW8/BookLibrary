@@ -19,8 +19,6 @@ public class DeleteBooks implements Command {
         String bookIdsStr = req.getParameter(RequestParameter.BOOK_IDS);
         CommandResult result = new CommandResult(CommandResult.DEFAULT_PATH, CommandResult.Type.FORWARD);
 
-        //TODO pass bookIds in body
-
         if(!bookIdsStr.isEmpty()){
             Set<Short> bookIds = new HashSet<>();
             String[] bookIdsSplitted = bookIdsStr.split(",");

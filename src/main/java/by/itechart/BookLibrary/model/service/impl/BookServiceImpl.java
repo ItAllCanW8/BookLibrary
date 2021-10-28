@@ -97,9 +97,11 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public boolean delete(Set<Short> bookIds) {
-        try{
-            return bookDao.delete(bookIds);
-        } catch (DaoException e){
+        try(Connection connection = DataSource.getConnection()){
+//            connection.setAutoCommit(false);
+
+            return bookDao.delete(connection, bookIds);
+        } catch (DaoException | SQLException e){
             throw new ServiceException(e);
         }
     }
@@ -145,6 +147,10 @@ public class BookServiceImpl implements BookService {
             }
         }
 
+        if(!isForUpdate){
+            fieldIdsToInsert.addAll(fieldsFromDb.keySet());
+        }
+
         if (newFields.size() > fieldsFromDb.size() || isForUpdate) {
             if (bookDao.insertNewFields(connection, new StringBuilder(insertFieldsQuery), newFields, fieldsFromDb, isForUpdate)) {
                 fieldIdsToInsert.addAll(fieldsFromDb.keySet());
@@ -180,6 +186,7 @@ public class BookServiceImpl implements BookService {
             for (String field : newBookFields) {
                 if (!oldBookFields.containsValue(field)) {
                     fieldsToInsertForUpd.add(field.toLowerCase());
+//                    fieldsToInsertForUpd.add(field);
                 }
             }
 

@@ -17,7 +17,7 @@ public interface BookDao {
     boolean insertNewFields(Connection connection, StringBuilder sb, Set<String> newFields, Map<Short,
             String> fieldsFromDb, boolean isForUpdate);
     boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk);
-    boolean delete(Set<Short> bookIds);
+    boolean delete(Connection connection, Set<Short> bookIds);
     boolean update(Connection connection, Book book);
     boolean selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
                                      String query, short bookId);

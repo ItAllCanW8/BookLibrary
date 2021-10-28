@@ -395,20 +395,18 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public boolean insertBookFields(Connection connection, StringBuilder sb, Set<Short> newFieldIds, short bookIdFk) {
-        try (Statement insertAllBookGenresSt = connection.createStatement()) {
+        try (Statement insertBookFieldsSt = connection.createStatement()) {
             String query = prepareQueryFromSB(newFieldIds, sb, bookIdFk);
 
-            return insertAllBookGenresSt.executeUpdate(query) > 0;
+            return insertBookFieldsSt.executeUpdate(query) > 0;
         } catch (SQLException e) {
             throw new DaoException("Error inserting book fields", e);
         }
     }
 
     @Override
-    public boolean delete(Set<Short> bookIds) {
-        try (Connection connection = DataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            connection.setAutoCommit(false);
+    public boolean delete(Connection connection, Set<Short> bookIds) {
+        try (Statement statement = connection.createStatement()) {
             StringBuilder deleteBooksSb = new StringBuilder(DELETE);
 
             byte counter = (byte) bookIds.size();
@@ -422,13 +420,13 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-            if(statement.executeUpdate(deleteBooksSb.toString()) >0){
-                System.out.println("BOOKS DELETED");
-            }
+//            if(statement.executeUpdate(deleteBooksSb.toString()) >0){
+//                System.out.println("BOOKS DELETED");
+//            }
 
 
-//            return statement.executeUpdate(deleteBooksSb.toString()) > 0;
-            return true;
+            return statement.executeUpdate(deleteBooksSb.toString()) > 0;
+//            return true;
         } catch (SQLException e) {
             throw new DaoException("Error deleting books.", e);
         }
