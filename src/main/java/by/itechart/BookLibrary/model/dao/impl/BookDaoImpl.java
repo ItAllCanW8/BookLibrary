@@ -420,13 +420,7 @@ public class BookDaoImpl implements BookDao {
                 }
             }
 
-//            if(statement.executeUpdate(deleteBooksSb.toString()) >0){
-//                System.out.println("BOOKS DELETED");
-//            }
-
-
             return statement.executeUpdate(deleteBooksSb.toString()) > 0;
-//            return true;
         } catch (SQLException e) {
             throw new DaoException("Error deleting books.", e);
         }

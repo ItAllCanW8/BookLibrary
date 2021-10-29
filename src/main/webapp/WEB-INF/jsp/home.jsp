@@ -74,13 +74,13 @@
             <div class="row align-items-start" style="width:100%;">
                 <div style="display: flex;justify-content: center">
                     <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-success"
-                       role="button" style="width: 40%" aria-pressed="true">Add book</a>
+                       role="button" style="width: 40%" aria-pressed="true">Add</a>
                 </div>
 
                 <div style="display: flex;justify-content: center">
                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
                             data-bs-target="#deleteBooksModal" style="width: 40%; margin-top: 1%; margin-bottom: 1%">
-                        Delete Books
+                        Delete
                     </button>
                 </div>
 
@@ -231,9 +231,9 @@
 
         // deleteBooksForm.action += checkedBooks;
 
-        if(checkedBooks.length !== 0){
+        if (checkedBooks.length !== 0) {
             document.getElementById('deleteBooksForm').submit();
-        } else{
+        } else {
             alert("CHECK SOME BOOKS");
         }
     }

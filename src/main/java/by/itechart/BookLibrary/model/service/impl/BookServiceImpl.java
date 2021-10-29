@@ -98,8 +98,6 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean delete(Set<Short> bookIds) {
         try(Connection connection = DataSource.getConnection()){
-//            connection.setAutoCommit(false);
-
             return bookDao.delete(connection, bookIds);
         } catch (DaoException | SQLException e){
             throw new ServiceException(e);
@@ -145,9 +143,7 @@ public class BookServiceImpl implements BookService {
                             .findFirst().get());
                 }
             }
-        }
-
-        if(!isForUpdate){
+        } else {
             fieldIdsToInsert.addAll(fieldsFromDb.keySet());
         }
 
@@ -186,7 +182,6 @@ public class BookServiceImpl implements BookService {
             for (String field : newBookFields) {
                 if (!oldBookFields.containsValue(field)) {
                     fieldsToInsertForUpd.add(field.toLowerCase());
-//                    fieldsToInsertForUpd.add(field);
                 }
             }
 

@@ -23,6 +23,9 @@ public enum CommandType {
     }},
     LOAD_BOOK_COVER {{
         this.command = new LoadBookCover();
+    }},
+    LOAD_READERS {{
+        this.command = new LoadReaders();
     }};
 
     Command command;

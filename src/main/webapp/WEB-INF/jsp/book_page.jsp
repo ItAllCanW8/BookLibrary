@@ -6,6 +6,7 @@
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
     <c:set var="book" scope="page" value="${book}"/>
+    <c:set var="readers" scope="page" value="${readers}"/>
 </div>
 
 <section class="about_section layout_padding">
@@ -178,10 +179,153 @@
     </div>
 </section>
 
+<section class="course_section layout_padding-bottom">
+    <div class="container">
+        <div class="heading_container">
+            <h3>
+                Borrow Records
+            </h3>
+
+            <hr style="width:100%;text-align:left;margin-left:0">
+            <div>
+                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal"
+                        data-bs-target="#addBorrowRecModal" style="margin-top: 1%; margin-bottom: 1%">Add
+                </button>
+            </div>
+        </div>
+        <div class="event_container">
+            <table id="borrowRecTable" class="table table-dark table-bordered border-secondary">
+                <thead>
+                <tr>
+                    <th scope="col">Reader email</th>
+                    <th scope="col">Reader name</th>
+                    <th scope="col">Borrow date</th>
+                    <th scope="col">Due date</th>
+                    <th scope="col">Return date</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <c:forEach var="book" items="${books}">
+                <tr class="table-secondary">
+                    <th scope="row">
+                        <a href="${pageContext.request.contextPath}/book_page.do?bookId=${book.id}">
+                                ${book.title}
+                        </a>
+                    </th>
+                    <th scope="row">
+                        <ul>
+                            <c:forEach var="author" items="${book.authors}">
+                                <li>${author}</li>
+                            </c:forEach>
+                        </ul>
+                    </th>
+                    <th scope="row">${book.publishDate}</th>
+                    <th scope="row">${book.remainingAmount}</th>
+                    <th scope="row">${book.remainingAmount}</th>
+                <tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addBorrowRecModal" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Borrow Record</h4>
+                </div>
+
+                <div class="modal-body">
+                    <form method="post" id="addBorrowRecForm"
+                          action="${pageContext.request.contextPath}/add_borrow_record.do">
+                        <label for="readerEmailInput">Reader email</label>
+                        <div class="form-group mt-1">
+                            <input type="search" class="form-control field" id="readerEmailInput"
+                                   name="readerEmail"
+                                   placeholder="start to input..."
+                                   required>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="readerName">Reader name</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <input type="text" class="form-control field" id="readerName"
+                                   name="readerName"
+                                   readonly
+                                   value="${readerName}">
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="timePeriodSelect">Time period, months</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <div class="btn-group">
+                                <select id="timePeriodSelect">
+                                    <option value="1" selected>1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="6">6</option>
+                                    <option value="12">12</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="deleteBooksButt">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <script type="application/javascript">
+    let readers;
+    let timePeriodSelected = document.getElementById("timePeriodSelect").value;
+    let readerEmailInput = document.getElementById('readerEmailInput');
+
+    readerEmailInput.addEventListener('input', input);
+
+    function input(e){
+        console.log('EVENT TYPE: '+e.type);
+
+        if (readerEmailInput.value.length > 3){
+            if(typeof readers === 'undefined'){
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', 'load_readers.do', true);
+
+                xhr.onload = function (){
+                    if(this.status === 200){
+                        console.log(200);
+                        // readers = this.responseText;
+                        // console.log(readers[0].name);
+                        console.log(this.responseText);
+                        console.log(readers);
+                    }
+                }
+
+                xhr.send()
+            }
+        }
+    }
+
+    // function deleteCheckedBooks(checkedBooks) {
+    //     let xhr = new XMLHttpRequest();
+    //     xhr.open('POST', 'delete_books.do?bookIds=' + checkedBooks, true);
+    //     xhr.send();
+    // }
+
     function removeBracketsFromStr(str, elementId) {
         document.getElementById(elementId).value = str.replace(/[\[\]]/g, '');
     }
+    
 
     removeBracketsFromStr(document.getElementById('inputBookAuthors').value, 'inputBookAuthors');
     removeBracketsFromStr(document.getElementById('inputBookGenres').value, 'inputBookGenres');
