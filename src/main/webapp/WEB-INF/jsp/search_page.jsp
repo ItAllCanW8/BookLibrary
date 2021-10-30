@@ -1,62 +1,16 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: ya
+  Date: 30.10.2021
+  Time: 14:45
+  To change this template use File | Settings | File Templates.
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
 <html>
-
-<body>
+<body class="sub_page">
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
     <c:set var="books" scope="page" value="${books}"/>
-
-    <section class=" slider_section position-relative">
-        <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
-            <ol class="carousel-indicators">
-                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active"></li>
-                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"></li>
-                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2"></li>
-            </ol>
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col">
-                                <div class="detail-box">
-                                    <div>
-                                        <h1>L I B R A R Y</h1>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item ">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col">
-                                <div class="detail-box">
-                                    <div>
-                                        <h1>E D U C A T I O N</h1>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item ">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col">
-                                <div class="detail-box">
-                                    <div>
-                                        <h1>L E I S U R E</h1>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 </div>
 
 <section class="course_section layout_padding-bottom">
@@ -64,25 +18,59 @@
         <img src="${pageContext.request.contextPath}/images/layout/side-img.png" alt=""/>
     </div>
     <div class="container">
-        <div class="heading_container">
-            <h3>
-                Books
-            </h3>
+        <h3>
+            Search for books
+        </h3>
 
-            <hr style="width:100%;text-align:left;margin-left:0">
+        <hr style="width:100%;text-align:left;margin-left:0">
 
+        <form id="searchForm" method="POST"
+              action="${pageContext.request.contextPath}/search.do">
+
+            <label for="inputBookTitle">Title</label>
+            <input type="text" id="inputBookTitle" name="bookTitle"
+                   class="form-control field"
+                   placeholder="3 - 255 characters"
+                   required
+            <%--                                           pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"--%>
+                   value="${book.title}"/>
+
+            <label for="inputBookAuthors">Author(-s)</label>
+            <div class="form-group mt-1">
+                <input type="text" id="inputBookAuthors" name="bookAuthors"
+                       class="form-control field"
+                       placeholder="3 - 255 characters"
+                       required
+                <%--                                           pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,500}"--%>
+                       value="${book.authors}"/>
+            </div>
+
+            <label for="inputBookGenres">Genre(-s)</label>
+            <div class="form-group mt-1">
+                <input type="text" id="inputBookGenres" name="bookGenres"
+                       class="form-control field"
+                       placeholder="3 - 255 characters"
+                       required
+                <%--                                           pattern="[a-zA-Z.,\p{Blank}]{3,500}"--%>
+                       value="${book.genres}"/>
+            </div>
+
+            <label for="inputBookDescription">Description</label>
+            <textarea id="inputBookDescription" name="bookDescription" class="form-control"
+                      rows="5"
+                      placeholder="up to 1000 characters"
+                      minlength="3"
+                      maxlength="1000">${book.description}</textarea>
+            <button type="submit" id="searchButt" class="btn btn-outline-success" style="margin-top: 1%">Search</button>
+        </form>
+
+        <div class="heading_container" style="display: none">
             <div class="row align-items-start" style="width:100%;">
-                <div style="display: flex;justify-content: center">
-                    <a href="${pageContext.request.contextPath}/book_page.do" class="btn btn-outline-success"
-                       role="button" style="width: 40%" aria-pressed="true">Add</a>
-                </div>
-
-                <div style="display: flex;justify-content: center">
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                            data-bs-target="#deleteBooksModal" style="width: 40%; margin-top: 1%; margin-bottom: 1%">
-                        Delete
-                    </button>
-                </div>
+                <hr style="width:100%;text-align:left;margin-left:0">
+                <h3>
+                    Search result
+                </h3>
+                <hr style="width:100%;text-align:left;margin-left:0">
 
                 <div class="col-2" style="display: flex;justify-content: center">
                     <div class="dropdown">
@@ -122,7 +110,7 @@
             </div>
         </div>
 
-        <div class="event_container">
+        <div class="event_container" style="display: none">
             <table id="booksTable" class="table table-dark table-bordered border-secondary">
                 <thead>
                 <tr>
@@ -155,36 +143,6 @@
                 </tbody>
             </table>
 
-            <div class="modal fade" id="deleteBooksModal" tabindex="-1" role="dialog"
-                 aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Delete books</h4>
-                        </div>
-
-                        <div class="modal-body">
-                            <form method="post" id="deleteBooksForm"
-                                  action="${pageContext.request.contextPath}/delete_books.do">
-                                <c:forEach var="book" items="${books}">
-                                    <div>
-                                        <label for="${book.id}">Title: ${book.title}</label>
-                                        <input type="checkbox" id="${book.id}" style="float:right">
-                                    </div>
-                                </c:forEach>
-                                <input type="hidden" name="bookIds" id="bookIdsInput">
-                            </form>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
-                            </button>
-                            <button type="button" class="btn btn-primary" id="deleteBooksButt">Delete selected</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <c:if test="${currentPage != 1}">
                 <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">Previous</a>
                 </th>
@@ -216,30 +174,24 @@
 </section>
 
 <script type="application/javascript">
-    function deleteCheckedBooks(e) {
+    function search(e) {
         e.preventDefault();
 
-        let checkedBooks = [];
-        let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
-
-        for (let i = 0; i < checkboxes.length; i++) {
-            checkedBooks.push(checkboxes[i].id);
-        }
-
-        let bookIdsInput = document.getElementById('bookIdsInput');
-        bookIdsInput.value = checkedBooks;
-
-        if (checkedBooks.length !== 0) {
-            document.getElementById('deleteBooksForm').submit();
+        if(!(document.getElementById('inputBookTitle').value === "" &&
+            document.getElementById('inputBookGenres').value === "" &&
+            document.getElementById('inputBookAuthors').value === "" &&
+            document.getElementById('inputBookDescription').value === "")){
+            document.getElementsByClassName('heading_container')[0].style.display = 'block';
+            document.getElementsByClassName('event_container')[0].style.display = 'block';
+            // document.getElementById('searchForm').submit();
         } else {
-            alert("CHECK SOME BOOKS");
+            alert("AT LEAST ONE FIELD SHOULD BE FILLED");
         }
     }
 
-    let deleteBooksButt = document.getElementById('deleteBooksButt');
-    deleteBooksButt.addEventListener('click', deleteCheckedBooks);
+    let searchButt = document.getElementById('searchButt');
+    searchButt.addEventListener('click', search);
 </script>
 
 </body>
-
 </html>

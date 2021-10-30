@@ -26,6 +26,9 @@ public enum CommandType {
     }},
     LOAD_READERS {{
         this.command = new LoadReaders();
+    }},
+    SEARCH_PAGE {{
+        this.command = new SearchPage();
     }};
 
     Command command;

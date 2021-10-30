@@ -31,7 +31,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/load_books.do">Books</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/search_page.do">Search</a>
                     </li>
 
                     <li class="nav-item"><a class="nav-link"

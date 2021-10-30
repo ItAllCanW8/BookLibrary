@@ -92,7 +92,6 @@ SELECT * FROM books JOIN authors ON books.book_id = authors.book_id_fk
             JOIN genres ON books.book_id = genres.book_id_fk WHERE book_id = 15;
             
 SELECT author FROM authors WHERE author LIKE 'Van Butson' OR author LIKE '%mill';
-SELECT author FROM authors WHERE author LIKE IN ( '%hka');
 
 INSERT INTO `authors` (`book_id_fk`,`author`)
 VALUES
@@ -144,3 +143,40 @@ VALUES
   (13,"amet,"),
   (13,"nisi"),
   (14,"semper");
+
+
+SELECT book_id, title, publish_date, remaining_amount FROM books WHERE title LIKE ? OR author_pseudo LIKE ? 
+            OR isbn LIKE ? OR genre LIKE ? OR available_quantity LIKE ?;
+            
+            SELECT book_id_fk, author FROM book_authors
+            JOIN authors ON author_id_fk = author_id
+             WHERE book_id_fk = book_id;
+/*            
+SELECT book_id, title, publish_date, remaining_amount, genre FROM books
+JOIN book_authors ON book_id_fk = book_id 
+JOIN authors ON author_id_fk = author_id
+JOIN book_genres ON book_id_fk = book_id 
+JOIN genres ON genre_id_fk = genre_id
+WHERE title LIKE "a" OR (genre LIKE "a%" OR genre LIKE "p%");
+*/
+
+SELECT book_id, title, publish_date, remaining_amount, genre, author FROM books
+JOIN book_authors ON book_authors.book_id_fk = book_id 
+JOIN authors ON author_id_fk = author_id
+JOIN book_genres ON book_genres.book_id_fk = book_id 
+JOIN genres ON genre_id_fk = genre_id
+WHERE title LIKE "a%" OR (genre LIKE "z%" OR genre LIKE "t%") OR (author LIKE "f%" OR author LIKE "%1") OR description LIKE "y%";
+            
+            WITH fields_and_authors AS 
+            (SELECT book_id, title, publish_date, remaining_amount, author, description
+            FROM book_authors
+             JOIN books ON book_id_fk = book_id
+             JOIN authors ON author_id_fk = author_id),
+             genres AS 
+            (SELECT genre FROM book_genres
+             JOIN books ON book_id_fk = book_id
+             JOIN genres ON genre_id_fk = genre_id)
+             SELECT DISTINCT * FROM fields_and_authors JOIN genres WHERE title LIKE "A%";
+             
+SELECT email, name FROM readers;
+

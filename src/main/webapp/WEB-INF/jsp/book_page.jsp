@@ -6,7 +6,6 @@
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
     <c:set var="book" scope="page" value="${book}"/>
-    <c:set var="readers" scope="page" value="${readers}"/>
 </div>
 
 <section class="about_section layout_padding">
@@ -46,7 +45,7 @@
             <div class="col-md-6">
                 <div class="detail-box">
                     <c:if test="${book.id == null}">
-                    <form id="editBookForm" method="POST"
+                    <form id="addBookForm" method="POST"
                           action="${pageContext.request.contextPath}/add_book.do">
                         </c:if>
 
@@ -292,40 +291,51 @@
     let readerEmailInput = document.getElementById('readerEmailInput');
 
     readerEmailInput.addEventListener('input', input);
+    readerEmailInput.addEventListener('focus', loadReadersInfo);
 
-    function input(e){
-        console.log('EVENT TYPE: '+e.type);
+    function loadReadersInfo(e) {
+        if (typeof readers === 'undefined') {
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', 'load_readers.do', true);
 
-        if (readerEmailInput.value.length > 3){
-            if(typeof readers === 'undefined'){
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', 'load_readers.do', true);
+            xhr.onload = function () {
+                if (this.status === 200) {
+                    readers = JSON.parse(this.responseText);
+                    // console.log(readers[1].name);
+                    console.log(readers);
+                }
+            }
 
-                xhr.onload = function (){
-                    if(this.status === 200){
-                        console.log(200);
-                        // readers = this.responseText;
-                        // console.log(readers[0].name);
-                        console.log(this.responseText);
-                        console.log(readers);
-                    }
+            xhr.send();
+        }
+    }
+
+    function input(e) {
+        // console.log('EVENT TYPE: '+e.type);
+
+        if (readerEmailInput.value.length > 3) {
+            let emailInput = readerEmailInput.value;
+            let anyCharacters = '.*';
+            // let anyCharacters = 'a';
+            // let regex = new RegExp(anyCharacters + emailInput + anyCharacters);
+            let regex = new RegExp(emailInput);
+            console.log(regex);
+
+            for (let i = 0; i < readers.length; i++) {
+                if (readers[i].email.match(regex)) {
+                    readerEmailInput.style.display = "none";
+                    console.log(true);
                 }
 
-                xhr.send()
+                // console.log(readers[i]);
             }
         }
     }
 
-    // function deleteCheckedBooks(checkedBooks) {
-    //     let xhr = new XMLHttpRequest();
-    //     xhr.open('POST', 'delete_books.do?bookIds=' + checkedBooks, true);
-    //     xhr.send();
-    // }
-
     function removeBracketsFromStr(str, elementId) {
         document.getElementById(elementId).value = str.replace(/[\[\]]/g, '');
     }
-    
+
 
     removeBracketsFromStr(document.getElementById('inputBookAuthors').value, 'inputBookAuthors');
     removeBracketsFromStr(document.getElementById('inputBookGenres').value, 'inputBookGenres');

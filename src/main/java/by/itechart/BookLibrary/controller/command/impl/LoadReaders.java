@@ -27,7 +27,8 @@ public class LoadReaders implements Command {
             if(readers.size() > 0){
                 Gson g = new Gson();
 
-                resp.setContentType("text/plain;charset=UTF-8");
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
 
                 PrintWriter writer = resp.getWriter();
                 writer.write(g.toJson(readers));
