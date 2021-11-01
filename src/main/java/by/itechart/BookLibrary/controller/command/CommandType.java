@@ -29,6 +29,9 @@ public enum CommandType {
     }},
     SEARCH_PAGE {{
         this.command = new SearchPage();
+    }},
+    SEARCH{{
+        this.command = new SearchPage();
     }};
 
     Command command;

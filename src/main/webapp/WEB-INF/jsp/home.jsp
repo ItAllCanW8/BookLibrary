@@ -215,30 +215,7 @@
     </div>
 </section>
 
-<script type="application/javascript">
-    function deleteCheckedBooks(e) {
-        e.preventDefault();
-
-        let checkedBooks = [];
-        let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
-
-        for (let i = 0; i < checkboxes.length; i++) {
-            checkedBooks.push(checkboxes[i].id);
-        }
-
-        let bookIdsInput = document.getElementById('bookIdsInput');
-        bookIdsInput.value = checkedBooks;
-
-        if (checkedBooks.length !== 0) {
-            document.getElementById('deleteBooksForm').submit();
-        } else {
-            alert("CHECK SOME BOOKS");
-        }
-    }
-
-    let deleteBooksButt = document.getElementById('deleteBooksButt');
-    deleteBooksButt.addEventListener('click', deleteCheckedBooks);
-</script>
+<script src="${pageContext.request.contextPath}/js/home.js"></script>
 
 </body>
 

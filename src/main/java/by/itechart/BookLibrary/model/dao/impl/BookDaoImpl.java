@@ -1,12 +1,12 @@
 package by.itechart.BookLibrary.model.dao.impl;
 
+import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.exception.DaoException;
 import by.itechart.BookLibrary.model.connection.DataSource;
 import by.itechart.BookLibrary.model.dao.BookDao;
 import by.itechart.BookLibrary.model.entity.Book;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import static by.itechart.BookLibrary.model.dao.impl.SqlSymbols.*;
@@ -15,7 +15,7 @@ import java.sql.*;
 import java.util.*;
 
 public class BookDaoImpl implements BookDao {
-    public static final String INSERT = "INSERT INTO books(cover, title, publisher, publish_date," +
+    private static final String INSERT = "INSERT INTO books(cover, title, publisher, publish_date," +
             " page_count, isbn, description, total_amount, remaining_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?," +
             "?, ?, ? );";
 
@@ -28,9 +28,9 @@ public class BookDaoImpl implements BookDao {
     public static final String INSERT_BOOK_GENRES = "INSERT INTO book_genres(book_id_fk, genre_id_fk) VALUES";
     public static final String INSERT_BOOK_AUTHORS = "INSERT INTO book_authors(book_id_fk, author_id_fk) VALUES";
 
-    public static final String DELETE = "DELETE FROM books WHERE book_id IN(";
+    private static final String DELETE = "DELETE FROM books WHERE book_id IN(";
 
-    public static final String UPDATE = "UPDATE books SET title = ?, publisher = ?, publish_date = ?, page_count = ?," +
+    private static final String UPDATE = "UPDATE books SET title = ?, publisher = ?, publish_date = ?, page_count = ?," +
             " isbn = ?, description = ?, total_amount = ?, remaining_amount = ?, status = ? WHERE book_id = ?;";
 
     public static final String LOAD_OLD_BOOK_GENRES = "SELECT book_id_fk, genre_id, genre FROM book_genres" +
@@ -62,9 +62,16 @@ public class BookDaoImpl implements BookDao {
             " JOIN genres ON genre_id_fk = genre_id WHERE book_id = ?)" +
             " SELECT * FROM fields_and_authors JOIN genres;";
 
-    public static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
+    private static final String SEARCH_BOOKS =
+            "SELECT book_id, title, publish_date, remaining_amount, genre, author FROM books " +
+                    "JOIN book_authors ON book_authors.book_id_fk = book_id " +
+                    "JOIN authors ON author_id_fk = author_id " +
+                    "JOIN book_genres ON book_genres.book_id_fk = book_id " +
+                    "JOIN genres ON genre_id_fk = genre_id ";
 
-    public static final String CHECK_TITLE_FOR_EXISTENCE = "SELECT title FROM books WHERE title = ?;";
+    private static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
+
+    private static final String CHECK_TITLE_FOR_EXISTENCE = "SELECT title FROM books WHERE title = ?;";
 
     private static final String bookIdCol = "book_id";
     private static final String bookCoverCol = "cover";
@@ -113,14 +120,6 @@ public class BookDaoImpl implements BookDao {
             book.setId(rsWithBookId.getShort(1));
 
             return true;
-
-//            if (insertFields(connection, book, Optional.empty(), true) &&
-//                    insertFields(connection, book, Optional.empty(), false)) {
-//                connection.commit();
-//                return true;
-//            } else {
-//                connection.rollback();
-//            }
         } catch (SQLException e) {
             throw new DaoException("Error adding a book." + e);
         }
@@ -183,6 +182,46 @@ public class BookDaoImpl implements BookDao {
             }
         } catch (SQLException e) {
             throw new DaoException("Error loading books.", e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public List<Book> searchBooks(Map<String, String> searchFields) {
+        List<Book> books = new ArrayList<>();
+
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            StringBuilder searchQueryBuilder = new StringBuilder(SEARCH_BOOKS);
+            searchQueryBuilder.append("WHERE title LIKE ").append(searchFields.get(RequestParameter.BOOK_TITLE));
+            searchQueryBuilder.append("OR description LIKE ").append(searchFields.get(RequestParameter.BOOK_DESCRIPTION));
+
+            ResultSet rs = statement.executeQuery(SEARCH_BOOKS);
+//            "WHERE title LIKE \"a%\" OR (genre LIKE \"z%\" OR genre LIKE \"t%\") OR" +
+//                    " (author LIKE \"f%\" OR author LIKE \"%1\") OR description LIKE \"y%\";";
+            if (rs.isBeforeFirst()) {
+                StringBuilder loadBookAuthorsSB = new StringBuilder(LOAD_BOOK_AUTHORS);
+
+                while (rs.next()) {
+                    Book book = createBookFromRS(rs, false);
+                    books.add(book);
+
+                    loadBookAuthorsSB.append(book.getId());
+
+                    if (!rs.isLast()) {
+                        loadBookAuthorsSB.append(COMMA);
+                    } else {
+                        loadBookAuthorsSB.append(RIGHT_PARENTHESIS);
+                    }
+                }
+
+                rs = statement.executeQuery(loadBookAuthorsSB.toString());
+                joinBooksWithAuthors(rs, books);
+                System.out.println(books);
+            }
+        } catch (SQLException | NumberFormatException e) {
+            throw new DaoException("Error searching books.", e);
         }
 
         return books;

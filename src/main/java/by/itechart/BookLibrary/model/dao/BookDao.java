@@ -23,8 +23,8 @@ public interface BookDao {
                                      String query, short bookId);
     void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
                                      StringBuilder sb, short bookId);
-
     List<Book> loadBooks(int offset, int recordsPerPage, Optional<String> filterMode);
+    List<Book> searchBooks(Map<String, String> searchFields);
     int getBookCount();
     Optional<Book> findById(short bookId);
     boolean changeBookCover(short bookId, String path);

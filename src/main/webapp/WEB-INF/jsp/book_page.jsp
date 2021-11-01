@@ -187,7 +187,7 @@
 
             <hr style="width:100%;text-align:left;margin-left:0">
             <div>
-                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal"
+                <button type="button" id="addBorrowRecButt" class="btn btn-outline-success" data-bs-toggle="modal"
                         data-bs-target="#addBorrowRecModal" style="margin-top: 1%; margin-bottom: 1%">Add
                 </button>
             </div>
@@ -247,6 +247,7 @@
                                    placeholder="start to input..."
                                    required>
                         </div>
+                        <ul id="matchList"></ul>
 
                         <div class="mt-3">
                             <label for="readerName">Reader name</label>
@@ -285,61 +286,7 @@
     </div>
 </section>
 
-<script type="application/javascript">
-    let readers;
-    let timePeriodSelected = document.getElementById("timePeriodSelect").value;
-    let readerEmailInput = document.getElementById('readerEmailInput');
-
-    readerEmailInput.addEventListener('input', input);
-    readerEmailInput.addEventListener('focus', loadReadersInfo);
-
-    function loadReadersInfo(e) {
-        if (typeof readers === 'undefined') {
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', 'load_readers.do', true);
-
-            xhr.onload = function () {
-                if (this.status === 200) {
-                    readers = JSON.parse(this.responseText);
-                    // console.log(readers[1].name);
-                    console.log(readers);
-                }
-            }
-
-            xhr.send();
-        }
-    }
-
-    function input(e) {
-        // console.log('EVENT TYPE: '+e.type);
-
-        if (readerEmailInput.value.length > 3) {
-            let emailInput = readerEmailInput.value;
-            let anyCharacters = '.*';
-            // let anyCharacters = 'a';
-            // let regex = new RegExp(anyCharacters + emailInput + anyCharacters);
-            let regex = new RegExp(emailInput);
-            console.log(regex);
-
-            for (let i = 0; i < readers.length; i++) {
-                if (readers[i].email.match(regex)) {
-                    readerEmailInput.style.display = "none";
-                    console.log(true);
-                }
-
-                // console.log(readers[i]);
-            }
-        }
-    }
-
-    function removeBracketsFromStr(str, elementId) {
-        document.getElementById(elementId).value = str.replace(/[\[\]]/g, '');
-    }
-
-
-    removeBracketsFromStr(document.getElementById('inputBookAuthors').value, 'inputBookAuthors');
-    removeBracketsFromStr(document.getElementById('inputBookGenres').value, 'inputBookGenres');
-</script>
+<script src="${pageContext.request.contextPath}/js/book_page.js"></script>
 
 </body>
 
