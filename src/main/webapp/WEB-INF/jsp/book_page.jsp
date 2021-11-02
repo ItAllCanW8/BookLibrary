@@ -6,6 +6,7 @@
 <div class="hero_area">
     <%@ include file="components/header.jsp" %>
     <c:set var="book" scope="page" value="${book}"/>
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/autocomplete_form.css"/>
 </div>
 
 <section class="about_section layout_padding">
@@ -241,13 +242,13 @@
                     <form method="post" id="addBorrowRecForm"
                           action="${pageContext.request.contextPath}/add_borrow_record.do">
                         <label for="readerEmailInput">Reader email</label>
-                        <div class="form-group mt-1">
+                        <div class="form-group mt-1 search-input">
                             <input type="search" class="form-control field" id="readerEmailInput"
                                    name="readerEmail"
                                    placeholder="start to input..."
                                    required>
+                            <ul id="matchList" class="autocom-box"></ul>
                         </div>
-                        <ul id="matchList"></ul>
 
                         <div class="mt-3">
                             <label for="readerName">Reader name</label>
@@ -255,7 +256,6 @@
                         <div class="form-group mt-1">
                             <input type="text" class="form-control field" id="readerName"
                                    name="readerName"
-                                   readonly
                                    value="${readerName}">
                         </div>
 
@@ -279,7 +279,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard
                     </button>
-                    <button type="submit" class="btn btn-primary" id="deleteBooksButt">Save</button>
+                    <button type="button" class="btn btn-primary" id="saveBorrowRecButt">Save</button>
                 </div>
             </div>
         </div>

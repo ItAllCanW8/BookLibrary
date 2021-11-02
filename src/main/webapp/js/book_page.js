@@ -1,13 +1,21 @@
+let saveBorrowRecButt = document.getElementById('saveBorrowRecButt');
+saveBorrowRecButt.addEventListener('click', addBorrowRec);
+
 const matchList = document.getElementById('matchList');
 
 let readers;
+
+let listItems = document.getElementById('matchList');
+listItems.addEventListener('click', itemSelected)
+
+const readerName = document.getElementById('readerName');
+const readerEmailInput = document.getElementById('readerEmailInput');
+readerEmailInput.addEventListener('input', input);
+
 const addBorrowRecButt = document.getElementById('addBorrowRecButt');
+addBorrowRecButt.addEventListener('click', () => loadReaders());
 
 const timePeriodSelected = document.getElementById("timePeriodSelect").value;
-const readerEmailInput = document.getElementById('readerEmailInput');
-
-addBorrowRecButt.addEventListener('click', () => loadReaders());
-readerEmailInput.addEventListener('input', input);
 
 const loadReaders = async () => {
     if (typeof readers === 'undefined') {
@@ -34,6 +42,8 @@ const loadReaders = async () => {
 // }
 
 function input(e) {
+    matchList.innerHTML = '';
+
     if (readerEmailInput.value.length > 3) {
         const emailInput = readerEmailInput.value;
         const matchingReaders = new Map();
@@ -46,7 +56,6 @@ function input(e) {
             }
         }
 
-        matchList.innerHTML = '';
         output(matchingReaders);
     }
 }
@@ -56,11 +65,17 @@ const output = matchingReaders => {
         let li;
 
         matchingReaders.forEach((name, email) => {
-            li = `<li id='${email}'> ${email} </li>`;
+            li = `<li id='${email}' value='${name}'>${email}</li>`;
             matchList.innerHTML += li;
         })
     }
 };
+
+function itemSelected(e) {
+    matchList.innerHTML = '';
+    readerEmailInput.value = e.target.innerText;
+    readerName.value = e.target.getAttribute("value");
+}
 
 function removeBracketsFromStr(str, elementId) {
     document.getElementById(elementId).value = str.replace(/[\[\]]/g, '');
