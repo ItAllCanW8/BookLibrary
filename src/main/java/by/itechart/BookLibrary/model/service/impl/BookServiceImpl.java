@@ -206,17 +206,27 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> searchBooks(Map<String, String> searchFields) {
         try{
-            Set<String> authors = Arrays.stream(searchFields.get(RequestParameter.BOOK_AUTHORS)
-                    .split(", "))
-                    .collect(Collectors.toSet());
-            Set<String> genres = Arrays.stream(searchFields.get(RequestParameter.BOOK_AUTHORS)
-                    .split(", "))
-                    .collect(Collectors.toSet());
+            Set<String> authors = new HashSet<>();
+            Set<String> genres = new HashSet<>();
 
-            System.out.println(authors);
-            System.out.println(genres);
+            String authorsStr = searchFields.get(RequestParameter.BOOK_AUTHORS);
+            String genresStr = searchFields.get(RequestParameter.BOOK_GENRES);
 
-            return bookDao.searchBooks(searchFields);
+            if(authorsStr != null){
+                authors = Arrays.stream(authorsStr
+                        .split(", "))
+                        .collect(Collectors.toSet());
+                System.out.println(authors);
+            }
+            if(genresStr != null){
+                genres = Arrays.stream(genresStr
+                        .split(", "))
+                        .collect(Collectors.toSet());
+                System.out.println(genres);
+            }
+
+            return bookDao.searchBooks(searchFields.get(RequestParameter.BOOK_TITLE),
+                    searchFields.get(RequestParameter.BOOK_DESCRIPTION), authors, genres);
         } catch (DaoException e){
             throw new ServiceException(e);
         }

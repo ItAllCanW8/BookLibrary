@@ -194,7 +194,7 @@
             </div>
         </div>
         <div class="event_container">
-            <table id="borrowRecTable" class="table table-dark table-bordered border-secondary">
+            <table id="borrowRecTable" class="table table-bordered border-secondary">
                 <thead>
                 <tr>
                     <th scope="col">Reader email</th>
@@ -206,25 +206,6 @@
                 </thead>
 
                 <tbody>
-                <c:forEach var="book" items="${books}">
-                <tr class="table-secondary">
-                    <th scope="row">
-                        <a href="${pageContext.request.contextPath}/book_page.do?bookId=${book.id}">
-                                ${book.title}
-                        </a>
-                    </th>
-                    <th scope="row">
-                        <ul>
-                            <c:forEach var="author" items="${book.authors}">
-                                <li>${author}</li>
-                            </c:forEach>
-                        </ul>
-                    </th>
-                    <th scope="row">${book.publishDate}</th>
-                    <th scope="row">${book.remainingAmount}</th>
-                    <th scope="row">${book.remainingAmount}</th>
-                <tr>
-                    </c:forEach>
                 </tbody>
             </table>
         </div>
@@ -254,9 +235,7 @@
                             <label for="readerName">Reader name</label>
                         </div>
                         <div class="form-group mt-1">
-                            <input type="text" class="form-control field" id="readerName"
-                                   name="readerName"
-                                   value="${readerName}">
+                            <input type="text" class="form-control field" id="readerName" name="readerName">
                         </div>
 
                         <div class="mt-3">

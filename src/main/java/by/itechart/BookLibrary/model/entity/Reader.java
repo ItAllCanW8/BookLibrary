@@ -1,6 +1,7 @@
 package by.itechart.BookLibrary.model.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Reader implements Serializable {
     private short id;
@@ -65,7 +66,7 @@ public class Reader implements Serializable {
 
         if (!name.equals(reader.name)) return false;
         if (!email.equals(reader.email)) return false;
-        return phoneNumber != null ? phoneNumber.equals(reader.phoneNumber) : reader.phoneNumber == null;
+        return Objects.equals(phoneNumber, reader.phoneNumber);
     }
 
     @Override

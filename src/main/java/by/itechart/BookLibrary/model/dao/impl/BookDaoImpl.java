@@ -188,14 +188,14 @@ public class BookDaoImpl implements BookDao {
     }
 
     @Override
-    public List<Book> searchBooks(Map<String, String> searchFields) {
+    public List<Book> searchBooks(String title, String description, Set<String> authors, Set<String> genres) {
         List<Book> books = new ArrayList<>();
 
         try (Connection connection = DataSource.getConnection();
              Statement statement = connection.createStatement()) {
             StringBuilder searchQueryBuilder = new StringBuilder(SEARCH_BOOKS);
-            searchQueryBuilder.append("WHERE title LIKE ").append(searchFields.get(RequestParameter.BOOK_TITLE));
-            searchQueryBuilder.append("OR description LIKE ").append(searchFields.get(RequestParameter.BOOK_DESCRIPTION));
+//            searchQueryBuilder.append("WHERE title LIKE ").append(searchFields.get(RequestParameter.BOOK_TITLE));
+//            searchQueryBuilder.append("OR description LIKE ").append(searchFields.get(RequestParameter.BOOK_DESCRIPTION));
 
             ResultSet rs = statement.executeQuery(SEARCH_BOOKS);
 //            "WHERE title LIKE \"a%\" OR (genre LIKE \"z%\" OR genre LIKE \"t%\") OR" +

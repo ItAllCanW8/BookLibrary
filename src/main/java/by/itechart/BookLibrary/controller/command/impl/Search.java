@@ -33,6 +33,8 @@ public class Search implements Command {
             searchFields.put(RequestParameter.BOOK_GENRES, genres);
             searchFields.put(RequestParameter.BOOK_DESCRIPTION, description);
 
+            System.out.println(searchFields);
+
             List<Book> books = service.searchBooks(searchFields);
 
             if (books.size() > 0) {

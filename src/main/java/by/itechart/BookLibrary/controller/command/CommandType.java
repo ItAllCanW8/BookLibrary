@@ -32,6 +32,9 @@ public enum CommandType {
     }},
     SEARCH{{
         this.command = new SearchPage();
+    }},
+    LOAD_BORROW_RECORDS{{
+        this.command = new LoadBorrowRecords();
     }};
 
     Command command;

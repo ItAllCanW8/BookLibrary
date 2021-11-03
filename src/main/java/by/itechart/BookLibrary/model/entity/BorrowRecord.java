@@ -12,9 +12,22 @@ public class BorrowRecord implements Serializable {
     private String status;
     private String comment;
     private short bookIdFk;
-    private short readerIdFk;
+    private String readerEmail;
+    private String readerName;
 
     public BorrowRecord(){}
+
+    public BorrowRecord(short id, LocalDateTime borrowDate, LocalDateTime dueDate, LocalDateTime returnDate,
+                        String status, String comment, String readerEmail, String readerName) {
+        this.id = id;
+        this.borrowDate = borrowDate;
+        this.dueDate = dueDate;
+        this.returnDate = returnDate;
+        this.status = status;
+        this.comment = comment;
+        this.readerEmail = readerEmail;
+        this.readerName = readerName;
+    }
 
     public short getId() {
         return id;
@@ -72,12 +85,20 @@ public class BorrowRecord implements Serializable {
         this.bookIdFk = bookIdFk;
     }
 
-    public short getReaderIdFk() {
-        return readerIdFk;
+    public String getReaderEmail() {
+        return readerEmail;
     }
 
-    public void setReaderIdFk(short readerIdFk) {
-        this.readerIdFk = readerIdFk;
+    public void setReaderEmail(String readerEmail) {
+        this.readerEmail = readerEmail;
+    }
+
+    public String getReaderName() {
+        return readerName;
+    }
+
+    public void setReaderName(String readerName) {
+        this.readerName = readerName;
     }
 
     @Override
@@ -88,12 +109,13 @@ public class BorrowRecord implements Serializable {
         BorrowRecord that = (BorrowRecord) o;
 
         if (bookIdFk != that.bookIdFk) return false;
-        if (readerIdFk != that.readerIdFk) return false;
         if (!borrowDate.equals(that.borrowDate)) return false;
         if (!dueDate.equals(that.dueDate)) return false;
         if (!Objects.equals(returnDate, that.returnDate)) return false;
         if (!Objects.equals(status, that.status)) return false;
-        return Objects.equals(comment, that.comment);
+        if (!Objects.equals(comment, that.comment)) return false;
+        if (!readerEmail.equals(that.readerEmail)) return false;
+        return readerName.equals(that.readerName);
     }
 
     @Override
@@ -104,7 +126,8 @@ public class BorrowRecord implements Serializable {
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (comment != null ? comment.hashCode() : 0);
         result = 31 * result + (int) bookIdFk;
-        result = 31 * result + (int) readerIdFk;
+        result = 31 * result + readerEmail.hashCode();
+        result = 31 * result + readerName.hashCode();
         return result;
     }
 
@@ -118,7 +141,8 @@ public class BorrowRecord implements Serializable {
                 ", status='" + status + '\'' +
                 ", comment='" + comment + '\'' +
                 ", bookIdFk=" + bookIdFk +
-                ", readerIdFk=" + readerIdFk +
+                ", readerEmail='" + readerEmail + '\'' +
+                ", readerName='" + readerName + '\'' +
                 '}';
     }
 }
