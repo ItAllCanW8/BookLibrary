@@ -1,14 +1,13 @@
 package by.itechart.BookLibrary.model.entity;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class BorrowRecord implements Serializable {
     private short id;
-    private LocalDateTime borrowDate;
-    private LocalDateTime dueDate;
-    private LocalDateTime returnDate;
+    private String borrowDate;
+    private String dueDate;
+    private String returnDate;
     private String status;
     private String comment;
     private short bookIdFk;
@@ -17,7 +16,7 @@ public class BorrowRecord implements Serializable {
 
     public BorrowRecord(){}
 
-    public BorrowRecord(short id, LocalDateTime borrowDate, LocalDateTime dueDate, LocalDateTime returnDate,
+    public BorrowRecord(short id, String borrowDate, String dueDate, String returnDate,
                         String status, String comment, String readerEmail, String readerName) {
         this.id = id;
         this.borrowDate = borrowDate;
@@ -37,27 +36,27 @@ public class BorrowRecord implements Serializable {
         this.id = id;
     }
 
-    public LocalDateTime getBorrowDate() {
+    public String getBorrowDate() {
         return borrowDate;
     }
 
-    public void setBorrowDate(LocalDateTime borrowDate) {
+    public void setBorrowDate(String borrowDate) {
         this.borrowDate = borrowDate;
     }
 
-    public LocalDateTime getDueDate() {
+    public String getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDateTime dueDate) {
+    public void setDueDate(String dueDate) {
         this.dueDate = dueDate;
     }
 
-    public LocalDateTime getReturnDate() {
+    public String getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(LocalDateTime returnDate) {
+    public void setReturnDate(String returnDate) {
         this.returnDate = returnDate;
     }
 

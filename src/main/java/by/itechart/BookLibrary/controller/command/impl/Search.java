@@ -21,6 +21,8 @@ public class Search implements Command {
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) {
         BookService service = ServiceFactory.getInstance().getBookService();
 
+        System.out.println("SEARCH");
+
         try {
             Map<String, String> searchFields = new HashMap<>();
             String title = req.getParameter(RequestParameter.BOOK_TITLE);

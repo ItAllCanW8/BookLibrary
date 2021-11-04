@@ -184,19 +184,22 @@
             document.getElementsByClassName('heading_container')[0].style.display = 'block';
             document.getElementsByClassName('event_container')[0].style.display = 'block';
 
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', 'search.do', true);
-
-            xhr.onload = function () {
-                if (this.status === 200) {
-                    // readers = JSON.parse(this.responseText);
-                    // console.log(readers[1].name);
-                    console.log(true);
-                }
-            }
-
-            xhr.send();
             // document.getElementById('searchForm').submit();
+
+            // let xhr = new XMLHttpRequest();
+            // xhr.open('GET', 'search.do', true);
+            //
+            // xhr.onload = function () {
+            //     if (this.status === 200) {
+            //         // document.getElementById('searchForm').submit();
+            //         // readers = JSON.parse(this.responseText);
+            //         // console.log(readers[1].name);
+            //         console.log(true);
+            //     }
+            // }
+            //
+            // xhr.send();
+            document.getElementById('searchForm').submit();
         } else {
             alert("AT LEAST ONE FIELD SHOULD BE FILLED");
         }

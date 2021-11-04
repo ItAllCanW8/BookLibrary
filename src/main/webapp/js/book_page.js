@@ -1,6 +1,5 @@
 let borrowRecords;
 window.onload = () => loadBorrowRecs();
-// document.addEventListener('DOMContentLoaded', () => loadBorrowRecs());
 
 let saveBorrowRecButt = document.getElementById('saveBorrowRecButt');
 saveBorrowRecButt.addEventListener('click', addBorrowRec);
@@ -14,7 +13,7 @@ listItems.addEventListener('click', itemSelected)
 
 const readerName = document.getElementById('readerName');
 const readerEmailInput = document.getElementById('readerEmailInput');
-readerEmailInput.addEventListener('input', input);
+readerEmailInput.addEventListener('input', emailInput);
 
 const addBorrowRecButt = document.getElementById('addBorrowRecButt');
 addBorrowRecButt.addEventListener('click', () => loadReaders());
@@ -29,30 +28,46 @@ const loadReaders = async () => {
 };
 
 const loadBorrowRecs = async () => {
-    // let url = 'load_borrow_records.do?bookId=' + '${bookId}';
-    const res = await fetch('load_borrow_records.do?bookId='+`${book.id}`);
+    const urlParams = new URLSearchParams(window.location.search);
+    const res = await fetch('load_borrow_records.do?bookId=' + urlParams.get('bookId'));
     borrowRecords = await res.json();
     console.log(borrowRecords);
+
+    await fillBorrowRecTable();
 };
 
-// function loadReadersInfo(e) {
-//     if (typeof readers === 'undefined') {
-//         let xhr = new XMLHttpRequest();
-//         xhr.open('GET', 'load_readers.do', true);
-//
-//         xhr.onload = function () {
-//             if (this.status === 200) {
-//                 readers = JSON.parse(this.responseText);
-//                 // console.log(readers[1].name);
-//                 console.log(readers);
-//             }
-//         }
-//
-//         xhr.send();
-//     }
-// }
+function fillBorrowRecTable(){
+    let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
 
-function input(e) {
+    let rowCount = table.rows.length;
+
+    for (let i =0; i < borrowRecords.length; i++){
+        let row = table.insertRow(rowCount);
+
+        let emailCell = row.insertCell(0);
+        emailCell.appendChild(document.createTextNode(borrowRecords[i].readerEmail));
+
+        let nameCell = row.insertCell(1);
+        nameCell.appendChild(document.createTextNode(borrowRecords[i].readerName));
+
+        let borrowDateCell = row.insertCell(2);
+        borrowDateCell.appendChild(document.createTextNode(new Date(borrowRecords[i].borrowDate).toLocaleDateString()));
+
+        let dueDateCell = row.insertCell(3);
+        dueDateCell.appendChild(document.createTextNode(new Date(borrowRecords[i].dueDate).toLocaleDateString()));
+
+        let returnDateCell = row.insertCell(4);
+        let returnDateStr = borrowRecords[i].returnDate;
+
+        if(typeof returnDateStr !== 'undefined'){
+            returnDateCell.appendChild(document.createTextNode(new Date(returnDateStr).toLocaleString()));
+        } else {
+            returnDateCell.appendChild(document.createTextNode('-'));
+        }
+    }
+}
+
+function emailInput(e) {
     matchList.innerHTML = '';
 
     if (readerEmailInput.value.length > 3) {
@@ -67,11 +82,11 @@ function input(e) {
             }
         }
 
-        output(matchingReaders);
+        showMatchingEmails(matchingReaders);
     }
 }
 
-const output = matchingReaders => {
+const showMatchingEmails = matchingReaders => {
     if (matchingReaders.size > 0) {
         let li;
 
@@ -89,28 +104,26 @@ function itemSelected(e) {
 }
 
 function addBorrowRec(e) {
+    // if(borrowRecords.contai)
+
     let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
 
     let rowCount = table.rows.length;
     let row = table.insertRow(rowCount);
 
     let emailCell = row.insertCell(0);
-    let email = document.createTextNode(readerEmailInput.value);
-    emailCell.appendChild(email);
+    emailCell.appendChild(document.createTextNode(readerEmailInput.value));
 
     let nameCell = row.insertCell(1);
-    let name = document.createTextNode(readerName.value);
-    nameCell.appendChild(name);
+    nameCell.appendChild(document.createTextNode(readerName.value));
 
     let date = new Date();
     let borrowDateCell = row.insertCell(2);
-    let lclBorrowDate = document.createTextNode(date.toLocaleDateString());
-    borrowDateCell.appendChild(lclBorrowDate);
+    borrowDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
 
     let dueDateCell = row.insertCell(3);
     date.setMonth(date.getMonth() + parseInt(timePeriodSelected.value));
-    let dueDate = document.createTextNode(date.toLocaleDateString());
-    dueDateCell.appendChild(dueDate);
+    dueDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
 
     let returnDateCell = row.insertCell(4);
     returnDateCell.appendChild(document.createTextNode('-'));

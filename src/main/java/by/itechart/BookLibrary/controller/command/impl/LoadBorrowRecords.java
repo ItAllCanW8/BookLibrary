@@ -8,6 +8,7 @@ import by.itechart.BookLibrary.model.entity.BorrowRecord;
 import by.itechart.BookLibrary.model.service.BorrowRecordService;
 import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +27,7 @@ public class LoadBorrowRecords implements Command {
             System.out.println("BR" + borrowRecords);
 
             if(borrowRecords.size() > 0){
-                Gson g = new Gson();
+                Gson g = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");

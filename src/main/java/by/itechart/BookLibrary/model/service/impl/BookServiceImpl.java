@@ -212,13 +212,13 @@ public class BookServiceImpl implements BookService {
             String authorsStr = searchFields.get(RequestParameter.BOOK_AUTHORS);
             String genresStr = searchFields.get(RequestParameter.BOOK_GENRES);
 
-            if(authorsStr != null){
+            if(!authorsStr.equals("")){
                 authors = Arrays.stream(authorsStr
                         .split(", "))
                         .collect(Collectors.toSet());
                 System.out.println(authors);
             }
-            if(genresStr != null){
+            if(!genresStr.equals("")){
                 genres = Arrays.stream(genresStr
                         .split(", "))
                         .collect(Collectors.toSet());

@@ -1,6 +1,5 @@
 package by.itechart.BookLibrary.model.dao.impl;
 
-import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.exception.DaoException;
 import by.itechart.BookLibrary.model.connection.DataSource;
 import by.itechart.BookLibrary.model.dao.BookDao;
@@ -67,7 +66,7 @@ public class BookDaoImpl implements BookDao {
                     "JOIN book_authors ON book_authors.book_id_fk = book_id " +
                     "JOIN authors ON author_id_fk = author_id " +
                     "JOIN book_genres ON book_genres.book_id_fk = book_id " +
-                    "JOIN genres ON genre_id_fk = genre_id ";
+                    "JOIN genres ON genre_id_fk = genre_id";
 
     private static final String UPDATE_COVER = "UPDATE books SET cover = ? WHERE book_id = ?";
 
@@ -194,12 +193,31 @@ public class BookDaoImpl implements BookDao {
         try (Connection connection = DataSource.getConnection();
              Statement statement = connection.createStatement()) {
             StringBuilder searchQueryBuilder = new StringBuilder(SEARCH_BOOKS);
-//            searchQueryBuilder.append("WHERE title LIKE ").append(searchFields.get(RequestParameter.BOOK_TITLE));
-//            searchQueryBuilder.append("OR description LIKE ").append(searchFields.get(RequestParameter.BOOK_DESCRIPTION));
 
-            ResultSet rs = statement.executeQuery(SEARCH_BOOKS);
-//            "WHERE title LIKE \"a%\" OR (genre LIKE \"z%\" OR genre LIKE \"t%\") OR" +
-//                    " (author LIKE \"f%\" OR author LIKE \"%1\") OR description LIKE \"y%\";";
+            if(!title.equals("")){
+                searchQueryBuilder.append(" WHERE title LIKE ").append(APOSTROPHE).append(title).append(APOSTROPHE)
+                        .append(WHITESPACE);
+            }
+            if(!description.equals("")){
+                searchQueryBuilder.append(" OR description LIKE ").append(APOSTROPHE).append(description)
+                        .append(APOSTROPHE).append(WHITESPACE);
+            }
+            if(authors.size() > 0){
+                for(String author : authors){
+                    searchQueryBuilder.append(" OR author LIKE ").append(APOSTROPHE).append(author).append(APOSTROPHE)
+                            .append(WHITESPACE);
+                }
+            }
+            if(genres.size() > 0){
+                for(String genre : genres){
+                    searchQueryBuilder.append(" OR genre LIKE ").append(APOSTROPHE).append(genre).append(APOSTROPHE)
+                            .append(WHITESPACE);
+                }
+            }
+
+            System.out.println(searchQueryBuilder.toString());
+
+            ResultSet rs = statement.executeQuery(searchQueryBuilder.toString());
             if (rs.isBeforeFirst()) {
                 StringBuilder loadBookAuthorsSB = new StringBuilder(LOAD_BOOK_AUTHORS);
 
