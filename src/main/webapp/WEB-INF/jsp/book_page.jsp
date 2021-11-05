@@ -156,7 +156,7 @@
                             <c:if test="${book.id != null}">
                                 <h3>
                                     <label>Status:</label>
-                                        ${book.status}
+                                    <div id="bookStatus">${book.status}</div>
                                 </h3>
                             </c:if>
 
@@ -169,7 +169,7 @@
                                           maxlength="1000">${book.description}</textarea>
                             </h4>
 
-                            <button type="submit" class="btn btn-outline-success">Save</button>
+                            <button type="submit" id="saveToDBButt" class="btn btn-outline-success">Save</button>
                             <a href="${pageContext.request.contextPath}/home.do" class="btn btn-outline-warning"
                                role="button" aria-pressed="true">Discard</a>
                         </form>
@@ -213,7 +213,7 @@
 
     <div class="modal fade" id="addBorrowRecModal" tabindex="-1" role="dialog"
          aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Add Borrow Record</h4>
@@ -265,6 +265,11 @@
     </div>
 </section>
 
+<script type="application/javascript">
+    const bookId = `${book.id}`;
+    let remainingAmount = `${book.remainingAmount}`;
+    let bookStatus = document.getElementById('bookStatus');
+</script>
 <script src="${pageContext.request.contextPath}/js/book_page.js"></script>
 
 </body>

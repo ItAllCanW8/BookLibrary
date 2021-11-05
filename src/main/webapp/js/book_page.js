@@ -1,5 +1,9 @@
 let borrowRecords;
 window.onload = () => loadBorrowRecs();
+let oldBorRecLength;
+
+let saveToDBButt = document.getElementById('saveToDBButt');
+saveToDBButt.addEventListener('click', saveChangesToDB);
 
 let saveBorrowRecButt = document.getElementById('saveBorrowRecButt');
 saveBorrowRecButt.addEventListener('click', addBorrowRec);
@@ -11,7 +15,7 @@ let readers;
 let listItems = document.getElementById('matchList');
 listItems.addEventListener('click', itemSelected)
 
-const readerName = document.getElementById('readerName');
+const readerNameInput = document.getElementById('readerName');
 const readerEmailInput = document.getElementById('readerEmailInput');
 readerEmailInput.addEventListener('input', emailInput);
 
@@ -19,6 +23,66 @@ const addBorrowRecButt = document.getElementById('addBorrowRecButt');
 addBorrowRecButt.addEventListener('click', () => loadReaders());
 
 const timePeriodSelected = document.getElementById("timePeriodSelect");
+
+async function saveChangesToDB(e) {
+    e.preventDefault();
+
+    console.log(1);
+
+    let newBorRecLength = borrowRecords.length;
+
+    console.log(2);
+
+    if (newBorRecLength > oldBorRecLength) {
+        console.log(3);
+
+        let recsToInsert = [];
+        for (let i = oldBorRecLength; i < newBorRecLength; i++) {
+            console.log(borrowRecords[i]);
+            recsToInsert.push(borrowRecords[i]);
+        }
+
+        console.log(recsToInsert);
+
+        await fetch('add_borrow_records.do', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Array.from(recsToInsert))
+        })
+            // .then(res => res.json())
+            // .then(res => {
+            //     // enter you logic when the fetch is successful
+            //     console.log(res)
+            // })
+            // .catch(error => {
+            //     // enter your logic for when there is an error (ex. error toast)
+            //     console.log(error)
+            // })
+
+        // try {
+        //     const config = {
+        //         method: 'POST',
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(recsToInsert)
+        //     }
+        //     const response = await fetch("add_borrow_records.do", config)
+        //     //const json = await response.json()
+        //     if (response.ok) {
+        //         //return json
+        //         return response
+        //     } else {
+        //         //
+        //     }
+        // } catch (error) {
+        //     //
+        // }
+    }
+}
 
 const loadReaders = async () => {
     if (typeof readers === 'undefined') {
@@ -28,20 +92,20 @@ const loadReaders = async () => {
 };
 
 const loadBorrowRecs = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const res = await fetch('load_borrow_records.do?bookId=' + urlParams.get('bookId'));
+    const res = await fetch('load_borrow_records.do?bookId=' + bookId);
     borrowRecords = await res.json();
-    console.log(borrowRecords);
+
+    oldBorRecLength = borrowRecords.length;
 
     await fillBorrowRecTable();
 };
 
-function fillBorrowRecTable(){
+function fillBorrowRecTable() {
     let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
 
     let rowCount = table.rows.length;
 
-    for (let i =0; i < borrowRecords.length; i++){
+    for (let i = 0; i < borrowRecords.length; i++) {
         let row = table.insertRow(rowCount);
 
         let emailCell = row.insertCell(0);
@@ -59,7 +123,7 @@ function fillBorrowRecTable(){
         let returnDateCell = row.insertCell(4);
         let returnDateStr = borrowRecords[i].returnDate;
 
-        if(typeof returnDateStr !== 'undefined'){
+        if (typeof returnDateStr !== 'undefined') {
             returnDateCell.appendChild(document.createTextNode(new Date(returnDateStr).toLocaleString()));
         } else {
             returnDateCell.appendChild(document.createTextNode('-'));
@@ -100,33 +164,66 @@ const showMatchingEmails = matchingReaders => {
 function itemSelected(e) {
     matchList.innerHTML = '';
     readerEmailInput.value = e.target.innerText;
-    readerName.value = e.target.getAttribute("value");
+    readerNameInput.value = e.target.getAttribute("value");
 }
 
 function addBorrowRec(e) {
-    // if(borrowRecords.contai)
+    if (remainingAmount <= 0) {
+        alert('SORRY, THERE IS NO MORE COPIES OF THIS BOOK REMAIN!');
+    } else if (!borrowRecords.some(e => e.readerEmail === readerEmailInput.value)) {
+        let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
 
-    let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
+        let rowCount = table.rows.length;
+        let row = table.insertRow(rowCount);
 
-    let rowCount = table.rows.length;
-    let row = table.insertRow(rowCount);
+        let emailCell = row.insertCell(0);
+        emailCell.appendChild(document.createTextNode(readerEmailInput.value));
 
-    let emailCell = row.insertCell(0);
-    emailCell.appendChild(document.createTextNode(readerEmailInput.value));
+        let nameCell = row.insertCell(1);
+        nameCell.appendChild(document.createTextNode(readerNameInput.value));
 
-    let nameCell = row.insertCell(1);
-    nameCell.appendChild(document.createTextNode(readerName.value));
+        let date = new Date();
 
-    let date = new Date();
-    let borrowDateCell = row.insertCell(2);
-    borrowDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
+        console.log(date);
+        console.log(date.toLocaleString().replace(',', ''));
 
-    let dueDateCell = row.insertCell(3);
-    date.setMonth(date.getMonth() + parseInt(timePeriodSelected.value));
-    dueDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
+        let borrowDateCell = row.insertCell(2);
+        borrowDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
 
-    let returnDateCell = row.insertCell(4);
-    returnDateCell.appendChild(document.createTextNode('-'));
+        let dueDateCell = row.insertCell(3);
+        date.setMonth(date.getMonth() + parseInt(timePeriodSelected.value));
+        dueDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
+
+        let returnDateCell = row.insertCell(4);
+        returnDateCell.appendChild(document.createTextNode('-'));
+
+        let borrowRec = {
+            id: borrowRecords.length + 1,
+            borrowDate: new Date().toLocaleString().replace(',', ''),
+            dueDate: date.toLocaleString().replace(',', ''),
+            bookIdFk: bookId,
+            readerEmail: readerEmailInput.value,
+            readerName: readerNameInput.value
+        }
+
+        borrowRecords.push(borrowRec);
+
+        let statusStr = bookStatus.innerText;
+        bookStatus.innerText = statusStr.replace(statusStr.match(new RegExp(remainingAmount)).toString(),
+            (--remainingAmount).toString());
+
+        console.log(remainingAmount);
+
+        // document.getElementById('addBorrowRecModal').style.display = 'none';
+        // document.getElementById('addBorrowRecModal');
+        // document.getElementById('addBorrowRecModal').classList.remove('show');
+        // document.getElementById('addBorrowRecModal').setAttribute('aria-hidden', 'true');
+        //
+        // const modalBackdrops = document.getElementsByClassName('modal-backdrop');
+        // document.body.removeChild(modalBackdrops[0]);
+    } else {
+        alert(`READER ${readerNameInput.value} HAS ALREADY BORROWED THIS BOOK!`);
+    }
 }
 
 function removeBracketsFromStr(str, elementId) {

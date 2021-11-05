@@ -176,7 +176,12 @@ WHERE title LIKE "a%" OR (genre LIKE "z%" OR genre LIKE "t%") OR (author LIKE "f
             (SELECT genre FROM book_genres
              JOIN books ON book_id_fk = book_id
              JOIN genres ON genre_id_fk = genre_id)
-             SELECT DISTINCT * FROM fields_and_authors JOIN genres WHERE title LIKE "A%";
+             SELECT DISTINCT * FROM fields_and_authors JOIN genres WHERE title LIKE A;
              
 SELECT email, name FROM readers;
 
+use book_library;
+
+SELECT email, name, borrow_date, due_date, return_date, status, comment FROM borrow_records JOIN readers ON reader_email = email WHERE book_id_fk = 13;
+
+INSE

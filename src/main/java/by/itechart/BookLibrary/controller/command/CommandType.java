@@ -35,6 +35,9 @@ public enum CommandType {
     }},
     LOAD_BORROW_RECORDS{{
         this.command = new LoadBorrowRecords();
+    }},
+    ADD_BORROW_RECORDS{{
+        this.command = new AddBorrowRecords();
     }};
 
     Command command;

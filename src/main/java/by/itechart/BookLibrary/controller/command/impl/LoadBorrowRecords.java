@@ -24,7 +24,6 @@ public class LoadBorrowRecords implements Command {
             BorrowRecordService service = ServiceFactory.getInstance().getBorrowRecordService();
 
             List<BorrowRecord> borrowRecords = service.loadBorrowRecords(bookId);
-            System.out.println("BR" + borrowRecords);
 
             if(borrowRecords.size() > 0){
                 Gson g = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
