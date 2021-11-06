@@ -90,7 +90,6 @@
                                     </div>
                                 </h5>
 
-
                                 <h5>
                                     <label for="inputBookPageCount">Page count</label>
                                     <div class="form-group mt-1">
@@ -216,7 +215,7 @@
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Add Borrow Record</h4>
+                    <h4 class="modal-title">Add borrow record</h4>
                 </div>
 
                 <div class="modal-body">
@@ -259,6 +258,39 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard
                     </button>
                     <button type="button" class="btn btn-primary" id="saveBorrowRecButt">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changeStatusModal" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Change borrow record status</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mt-3">
+                        <label for="statusSelect">Status:</label>
+                    </div>
+                    <div class="form-group mt-1">
+                        <div class="btn-group">
+                            <select id="statusSelect">
+                                <option value="1" selected>not selected</option>
+                                <option value="2">returned</option>
+                                <option value="3">returned and damaged</option>
+                                <option value="4">lost</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="changeStatusButt">Save</button>
                 </div>
             </div>
         </div>

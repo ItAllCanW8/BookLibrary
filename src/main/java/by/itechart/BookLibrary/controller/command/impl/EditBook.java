@@ -19,6 +19,9 @@ public class EditBook implements Command {
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
 
+        System.out.println(req.getParameter("status"));
+        System.out.println(req.getParameter("remainingAmount"));
+
         BookService service = ServiceFactory.getInstance().getBookService();
         CommandResult result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.REDIRECT);
         try {

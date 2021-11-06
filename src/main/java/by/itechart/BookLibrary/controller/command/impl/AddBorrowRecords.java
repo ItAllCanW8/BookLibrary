@@ -25,7 +25,9 @@ public class AddBorrowRecords implements Command {
 
             BorrowRecordService service = ServiceFactory.getInstance().getBorrowRecordService();
 
-            service.add(borrowRecords);
+            if(service.add(borrowRecords)){
+                resp.setStatus(200);
+            }
 
             System.out.println(borrowRecords);
         } catch (ServiceException | IOException e) {

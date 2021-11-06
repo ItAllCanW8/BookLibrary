@@ -184,4 +184,4 @@ use book_library;
 
 SELECT email, name, borrow_date, due_date, return_date, status, comment FROM borrow_records JOIN readers ON reader_email = email WHERE book_id_fk = 13;
 
-INSE
+INSERT INTO borrow_records(borrow_date, due_date, book_id_fk, reader_email_fk) VALUES ('','',1,'');

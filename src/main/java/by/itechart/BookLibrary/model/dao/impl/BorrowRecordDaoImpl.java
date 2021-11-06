@@ -30,8 +30,7 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
                         .append(COMMA).append(APOSTROPHE).append(borrowRecord.getDueDate()).append(APOSTROPHE).append(COMMA)
                         .append(borrowRecord.getBookIdFk()).append(COMMA).append(APOSTROPHE)
                         .append(borrowRecord.getReaderEmail()).append(APOSTROPHE).append(RIGHT_PARENTHESIS);
-//                Incorrect datetime value: '05.11.2021 13:43:56' for column 'borrow_date' at row 1
-                //TODO fix datetime
+
                 if(--counter != 0){
                     insertQuerySB.append(COMMA);
                 }
@@ -39,7 +38,7 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
 
             return statement.executeUpdate(insertQuerySB.toString()) > 0;
         } catch (SQLException e) {
-            throw new DaoException("Error adding borrow records.", e);
+            throw new DaoException( e.getMessage());
         }
     }
 

@@ -1,6 +1,6 @@
-let borrowRecords;
+let borrowRecords = [];
 window.onload = () => loadBorrowRecs();
-let oldBorRecLength;
+let oldBorRecLength = 0;
 
 let saveToDBButt = document.getElementById('saveToDBButt');
 saveToDBButt.addEventListener('click', saveChangesToDB);
@@ -27,18 +27,12 @@ const timePeriodSelected = document.getElementById("timePeriodSelect");
 async function saveChangesToDB(e) {
     e.preventDefault();
 
-    console.log(1);
-
     let newBorRecLength = borrowRecords.length;
 
-    console.log(2);
-
     if (newBorRecLength > oldBorRecLength) {
-        console.log(3);
 
         let recsToInsert = [];
         for (let i = oldBorRecLength; i < newBorRecLength; i++) {
-            console.log(borrowRecords[i]);
             recsToInsert.push(borrowRecords[i]);
         }
 
@@ -51,37 +45,32 @@ async function saveChangesToDB(e) {
             },
             body: JSON.stringify(Array.from(recsToInsert))
         })
-            // .then(res => res.json())
-            // .then(res => {
-            //     // enter you logic when the fetch is successful
-            //     console.log(res)
-            // })
-            // .catch(error => {
-            //     // enter your logic for when there is an error (ex. error toast)
-            //     console.log(error)
-            // })
-
-        // try {
-        //     const config = {
-        //         method: 'POST',
-        //         headers: {
-        //             'Accept': 'application/json',
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify(recsToInsert)
-        //     }
-        //     const response = await fetch("add_borrow_records.do", config)
-        //     //const json = await response.json()
-        //     if (response.ok) {
-        //         //return json
-        //         return response
-        //     } else {
-        //         //
-        //     }
-        // } catch (error) {
-        //     //
-        // }
+            .then(res => res.ok)
+            .then(res => {
+                if (res) {
+                    alert('CHANGES WERE SAVED!');
+                    for (let i = oldBorRecLength; i < newBorRecLength; i++) {
+                        borrowRecords.splice(i - 1, 1);
+                    }
+                }
+            })
+            .catch(error => {
+                alert(error);
+            });
     }
+
+    let bookEditForm=document.getElementById('editBookForm');
+
+    let input = document.createElement('input');
+    console.log(remainingAmount);
+    console.log(bookStatus.innerText);
+    input.setAttribute('remainingAmount', remainingAmount);
+    input.setAttribute('status', bookStatus.innerText);
+    input.setAttribute('type', 'hidden');
+
+    bookEditForm.appendChild(input);//append the input to the form
+
+    document.getElementById('editBookForm').submit();
 }
 
 const loadReaders = async () => {
@@ -93,11 +82,13 @@ const loadReaders = async () => {
 
 const loadBorrowRecs = async () => {
     const res = await fetch('load_borrow_records.do?bookId=' + bookId);
-    borrowRecords = await res.json();
 
-    oldBorRecLength = borrowRecords.length;
+    if (res.status === 200) {
+        borrowRecords = await res.json();
+        oldBorRecLength = borrowRecords.length;
 
-    await fillBorrowRecTable();
+        await fillBorrowRecTable();
+    }
 };
 
 function fillBorrowRecTable() {
@@ -109,10 +100,25 @@ function fillBorrowRecTable() {
         let row = table.insertRow(rowCount);
 
         let emailCell = row.insertCell(0);
-        emailCell.appendChild(document.createTextNode(borrowRecords[i].readerEmail));
+        let email = document.createTextNode(borrowRecords[i].readerEmail);
+        emailCell.appendChild(email);
 
         let nameCell = row.insertCell(1);
-        nameCell.appendChild(document.createTextNode(borrowRecords[i].readerName));
+        let name = document.createTextNode(borrowRecords[i].readerName);
+
+        //TODO create div instead of TextNode (onclick)
+        name.id = email + 'Id';
+        name.onclick = () => {
+            console.log('click');
+            document.getElementById('borrowRecTable').focus();
+        };
+
+        nameCell.appendChild(name);
+
+        // document.getElementById(email + 'Id').onclick = () => {
+        //     console.log('click');
+        //     document.getElementById('borrowRecTable').focus();
+        // };
 
         let borrowDateCell = row.insertCell(2);
         borrowDateCell.appendChild(document.createTextNode(new Date(borrowRecords[i].borrowDate).toLocaleDateString()));
@@ -184,9 +190,6 @@ function addBorrowRec(e) {
 
         let date = new Date();
 
-        console.log(date);
-        console.log(date.toLocaleString().replace(',', ''));
-
         let borrowDateCell = row.insertCell(2);
         borrowDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
 
@@ -197,10 +200,12 @@ function addBorrowRec(e) {
         let returnDateCell = row.insertCell(4);
         returnDateCell.appendChild(document.createTextNode('-'));
 
+        let borrowDate = toISOLocal(new Date()).slice(0, 19);
+
         let borrowRec = {
             id: borrowRecords.length + 1,
-            borrowDate: new Date().toLocaleString().replace(',', ''),
-            dueDate: date.toLocaleString().replace(',', ''),
+            borrowDate: borrowDate,
+            dueDate: toISOLocal(date).slice(0, 19),
             bookIdFk: bookId,
             readerEmail: readerEmailInput.value,
             readerName: readerNameInput.value
@@ -214,6 +219,7 @@ function addBorrowRec(e) {
 
         console.log(remainingAmount);
 
+        // TODO hide modal properly
         // document.getElementById('addBorrowRecModal').style.display = 'none';
         // document.getElementById('addBorrowRecModal');
         // document.getElementById('addBorrowRecModal').classList.remove('show');
@@ -224,6 +230,21 @@ function addBorrowRec(e) {
     } else {
         alert(`READER ${readerNameInput.value} HAS ALREADY BORROWED THIS BOOK!`);
     }
+}
+
+function toISOLocal(date) {
+    let z = n => ('0' + n).slice(-2);
+    let off = date.getTimezoneOffset();
+    let sign = off > 0 ? '-' : '+';
+    off = Math.abs(off);
+
+    return date.getFullYear() + '-'
+        + z(date.getMonth() + 1) + '-' +
+        z(date.getDate()) + 'T' +
+        z(date.getHours()) + ':' +
+        z(date.getMinutes()) + ':' +
+        z(date.getSeconds()) + '.' +
+        sign + z(off / 60 | 0) + ':' + z(off % 60);
 }
 
 function removeBracketsFromStr(str, elementId) {
