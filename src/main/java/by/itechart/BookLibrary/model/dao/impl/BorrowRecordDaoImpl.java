@@ -4,7 +4,6 @@ import by.itechart.BookLibrary.exception.DaoException;
 import by.itechart.BookLibrary.model.connection.DataSource;
 import by.itechart.BookLibrary.model.dao.BorrowRecordDao;
 import by.itechart.BookLibrary.model.entity.BorrowRecord;
-import com.sun.xml.internal.bind.v2.TODO;
 
 import java.sql.*;
 import java.util.ArrayList;
