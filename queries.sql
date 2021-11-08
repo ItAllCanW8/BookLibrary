@@ -185,3 +185,21 @@ use book_library;
 SELECT email, name, borrow_date, due_date, return_date, status, comment FROM borrow_records JOIN readers ON reader_email = email WHERE book_id_fk = 13;
 
 INSERT INTO borrow_records(borrow_date, due_date, book_id_fk, reader_email_fk) VALUES ('','',1,'');
+
+UPDATE borrow_records
+    SET status = (case when borrow_record_id = 20 then '622057'
+                         when borrow_record_id = 21 then '2913659'
+                         when borrow_record_id = 22 then '6160230'
+                    end),
+        return_date = (case when borrow_record_id = 20 then '622057'
+                         when borrow_record_id = 21 then '2913659'
+                         when borrow_record_id = 21 then '6160230'
+                    end),
+		comment = (case when borrow_record_id = 20 then '622057'
+                         when borrow_record_id = 21 then '2913659'
+                         when borrow_record_id = 22 then '6160230'
+                    end)
+    WHERE borrow_record_id in (20, 21, 22) AND
+          cod_office = '17389551';
+
+UPDATE borrow_records SET status = 'returned', return_date='2021-11-08T13:13:48.+03:00', comment = 'aaaa' WHERE borrow_record_id = 20;

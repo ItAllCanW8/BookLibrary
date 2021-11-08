@@ -35,28 +35,49 @@ async function saveChangesToDB(e) {
     let newBorRecLength = borrowRecords.length;
 
     if (newBorRecLength > oldBorRecLength) {
-
-        let recsToInsert = [];
+        let borrowRecsToInsert = [];
         for (let i = oldBorRecLength; i < newBorRecLength; i++) {
-            recsToInsert.push(borrowRecords[i]);
+            borrowRecsToInsert.push(borrowRecords[i]);
         }
 
-        console.log(recsToInsert);
+        console.log("Insert: " + borrowRecsToInsert);
 
         await fetch('add_borrow_records.do', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(Array.from(recsToInsert))
+            body: JSON.stringify(Array.from(borrowRecsToInsert))
         })
             .then(res => res.ok)
-            .then(res => {
+            .then(async res => {
                 if (res) {
                     alert('CHANGES WERE SAVED!');
-                    for (let i = oldBorRecLength; i < newBorRecLength; i++) {
-                        borrowRecords.splice(i - 1, 1);
-                    }
+
+                    // for (let i = oldBorRecLength; i < newBorRecLength; i++) {
+                    //     borrowRecords.splice(i - 1, 1);
+                    // }
+                }
+            })
+            .catch(error => {
+                alert(error);
+            });
+    }
+
+    if (borrowRecsToUpd.length > 0) {
+        console.log("Upd: " + borrowRecsToUpd);
+
+        await fetch('update_borrow_records.do', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Array.from(borrowRecsToUpd))
+        })
+            .then(res => res.ok)
+            .then(async res => {
+                if (res) {
+                    alert('CHANGES WERE SAVED!');
                 }
             })
             .catch(error => {
@@ -99,29 +120,46 @@ const loadBorrowRecs = async () => {
 function editBorRec(e) {
     let readerId = document.getElementById('readerId').innerText;
     let statusSelect = document.getElementById('statusSelect');
-    let status = statusSelect.options[statusSelect.selectedIndex].text;
+    let newStatus = statusSelect.options[statusSelect.selectedIndex].text;
 
     for (let i = 0; i < borrowRecords.length; i++) {
         if (borrowRecords[i].readerEmail === readerId.slice(0, -2)) {
             let borrowRecord = borrowRecords[i];
             let oldStatus = borrowRecord.status;
             let oldComment = borrowRecord.comment;
+            let email = borrowRecord.readerEmail;
 
-            if(status !== ""){
-                borrowRecord.status = status;
+            let newComment = document.getElementById('commentInput').value;
+
+            if (oldStatus !== newStatus) {
+                borrowRecord.status = newStatus;
 
                 let returnDate = toISOLocal(new Date()).slice(0, 19).replace('T', ' ');
                 borrowRecord.returnDate = returnDate;
-                document.getElementById(borrowRecord.readerEmail + 'RD').innerText = returnDate;
+                document.getElementById(email + 'RD').innerText = returnDate;
             }
 
-            let comment = document.getElementById('commentInput').value;
-            if(comment !== ""){
-                borrowRecord.comment = comment;
+            if (oldComment !== newComment) {
+                borrowRecord.comment = newComment;
             }
 
-            if(oldStatus !== status || oldComment !== comment){
-                borrowRecsToUpd.push(borrowRecord);
+            if (oldStatus !== newStatus || oldComment !== newComment) {
+                let j = 0;
+                for (j; j < borrowRecsToUpd.length; j++) {
+                    if (borrowRecsToUpd[j].readerEmail === email) {
+                        let borRecToUpd = borrowRecsToUpd[j];
+
+                        borRecToUpd.status = newStatus;
+                        borRecToUpd.returnDate = borrowRecord.returnDate;
+                        borRecToUpd.comment = newComment;
+
+                        break;
+                    }
+                }
+
+                if (j === borrowRecsToUpd.length) {
+                    borrowRecsToUpd.push(borrowRecord);
+                }
             }
 
             break;
@@ -154,16 +192,28 @@ function createNameDiv(readerName, readerEmail) {
 
                 document.getElementById('readerEmailEdit').value = borrowRecord.readerEmail;
                 document.getElementById('readerNameEdit').value = borrowRecord.readerName;
-                document.getElementById('borrowDate').value = borrowRecord.borrowDate.slice(0,10);
+                document.getElementById('borrowDate').value = borrowRecord.borrowDate.slice(0, 10);
 
-                let dueDate = new Date(borrowRecord.dueDate.slice(0,10));
-                let borrowDate = new Date(borrowRecord.borrowDate.slice(0,10));
+                let dueDate = new Date(borrowRecord.dueDate.slice(0, 10));
+                let borrowDate = new Date(borrowRecord.borrowDate.slice(0, 10));
                 document.getElementById('timePeriodEdit').value = monthDiff(borrowDate, dueDate);
 
-
+                let statusSelect = document.getElementById('statusSelect');
+                console.log(statusSelect)
                 console.log(borrowRecord.status)
-                document.getElementById('statusSelect').value = borrowRecord.status;
-                document.getElementById('commentInput').value = borrowRecord.comment;
+                if (typeof borrowRecord.status === 'undefined') {
+                    statusSelect.value = 1;
+                } else {
+                    statusSelect.selectedIndex = [...statusSelect.options]
+                        .findIndex(option => option.text === borrowRecord.status);
+                }
+
+                let comment = '';
+                if (typeof borrowRecord.comment !== 'undefined') {
+                    comment = borrowRecord.comment;
+                }
+
+                document.getElementById('commentInput').value = comment;
 
                 break;
             }
@@ -199,9 +249,11 @@ function fillBorrowRecTable() {
         let returnDateCell = row.insertCell(4);
         let returnDateDiv = document.createElement("div");
         returnDateDiv.id = borrowRecords[i].readerEmail + 'RD';
-        let returnDate = new Date(borrowRecords[i].returnDate).toLocaleString();
 
-        if (typeof returnDateStr !== 'undefined') {
+        if (typeof borrowRecords[i].returnDate !== 'undefined') {
+            let returnDate = toISOLocal(new Date(borrowRecords[i].returnDate)).slice(0, 19).replace('T', ' ');
+            console.log(returnDate);
+
             returnDateDiv.appendChild(document.createTextNode(returnDate));
         } else {
             returnDateDiv.appendChild(document.createTextNode('-'));
@@ -284,7 +336,7 @@ function addBorrowRec(e) {
             dueDate: toISOLocal(date),
             bookIdFk: bookId,
             readerEmail: readerEmailInput.value,
-            readerName: readerNameInput.value,
+            readerName: readerNameInput.value
         }
 
         borrowRecords.push(borrowRec);

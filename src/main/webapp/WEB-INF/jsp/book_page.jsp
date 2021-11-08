@@ -299,10 +299,9 @@
                     <div class="form-group mt-1">
                         <div class="btn-group">
                             <select id="statusSelect">
-                                <option value="1" selected></option>
-                                <option value="2">returned</option>
-                                <option value="3">returned and damaged</option>
-                                <option value="4">lost</option>
+                                <option value="1" selected>returned</option>
+                                <option value="2">returned and damaged</option>
+                                <option value="3">lost</option>
                             </select>
                         </div>
                     </div>

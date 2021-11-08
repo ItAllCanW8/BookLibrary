@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface BorrowRecordDao {
     boolean add(Connection connection, List<BorrowRecord> borrowRecords);
+    boolean update(Connection connection, List<BorrowRecord> borrowRecords);
     List<BorrowRecord> loadBorrowRecords(short bookId);
 }

@@ -25,6 +25,15 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
     }
 
     @Override
+    public boolean update(List<BorrowRecord> borrowRecords) {
+        try(Connection connection = DataSource.getConnection()){
+            return borrowRecordDao.update(connection, borrowRecords);
+        } catch (DaoException | SQLException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
     public List<BorrowRecord> loadBorrowRecords(short bookId) {
         try{
             return borrowRecordDao.loadBorrowRecords(bookId);

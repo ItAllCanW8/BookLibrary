@@ -38,6 +38,9 @@ public enum CommandType {
     }},
     ADD_BORROW_RECORDS{{
         this.command = new AddBorrowRecords();
+    }},
+    UPDATE_BORROW_RECORDS{{
+        this.command = new UpdateBorrowRecords();
     }};
 
     Command command;

@@ -32,7 +32,7 @@ public class LoadBorrowRecords implements Command {
                 resp.setCharacterEncoding("UTF-8");
 
                 PrintWriter writer = resp.getWriter();
-                System.out.println(g.toJson(borrowRecords));
+
                 writer.write(g.toJson(borrowRecords));
                 writer.close();
 //                req.setAttribute(RequestParameter.READERS, g.toJson(readers));

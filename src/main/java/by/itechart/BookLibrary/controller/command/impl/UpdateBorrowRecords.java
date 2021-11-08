@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AddBorrowRecords implements Command {
+public class UpdateBorrowRecords implements Command {
     @Override
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) {
         try {
@@ -25,7 +25,7 @@ public class AddBorrowRecords implements Command {
 
             BorrowRecordService service = ServiceFactory.getInstance().getBorrowRecordService();
 
-            if(service.add(borrowRecords)){
+            if(service.update(borrowRecords)){
                 resp.setStatus(200);
             }
         } catch (ServiceException | IOException e) {
