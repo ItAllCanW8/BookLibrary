@@ -168,6 +168,9 @@
                                           maxlength="1000">${book.description}</textarea>
                             </h4>
 
+                            <input type="hidden" id="remainingAmount" name="remainingAmount">
+                            <input type="hidden" id="newBookStatus" name="newBookStatus">
+
                             <button type="submit" id="saveToDBButt" class="btn btn-outline-success">Save</button>
                             <a href="${pageContext.request.contextPath}/home.do" class="btn btn-outline-warning"
                                role="button" aria-pressed="true">Discard</a>

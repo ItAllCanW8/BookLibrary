@@ -17,7 +17,7 @@ public class BorrowRecord implements Serializable {
     public BorrowRecord(){}
 
     public BorrowRecord(short id, String borrowDate, String dueDate, String returnDate,
-                        String status, String comment, String readerEmail, String readerName) {
+                        String status, String comment, String readerEmail, String readerName, short bookId) {
         this.id = id;
         this.borrowDate = borrowDate;
         this.dueDate = dueDate;
@@ -26,6 +26,7 @@ public class BorrowRecord implements Serializable {
         this.comment = comment;
         this.readerEmail = readerEmail;
         this.readerName = readerName;
+        this.bookIdFk = bookId;
     }
 
     public short getId() {

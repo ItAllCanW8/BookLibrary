@@ -9,8 +9,10 @@ import by.itechart.BookLibrary.exception.ServiceException;
 import by.itechart.BookLibrary.model.service.BookService;
 import by.itechart.BookLibrary.model.service.impl.ServiceFactory;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,8 +21,12 @@ public class EditBook implements Command {
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
 
-        System.out.println(req.getParameter("status"));
+//        System.out.println(req.getParameter("status"));
+//        System.out.println(req.getParameter("input"));
         System.out.println(req.getParameter("remainingAmount"));
+        System.out.println(req.getParameter("newBookStatus"));
+
+        System.out.println(req.getParameterMap().entrySet());
 
         BookService service = ServiceFactory.getInstance().getBookService();
         CommandResult result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.REDIRECT);

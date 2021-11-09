@@ -50,23 +50,16 @@ async function saveChangesToDB(e) {
             body: JSON.stringify(Array.from(borrowRecsToInsert))
         })
             .then(res => res.ok)
-            .then(async res => {
+            .then(res => {
                 if (res) {
-                    alert('CHANGES WERE SAVED!');
-
-                    // for (let i = oldBorRecLength; i < newBorRecLength; i++) {
-                    //     borrowRecords.splice(i - 1, 1);
-                    // }
+                    alert('BORROW RECORDS UPDATED!');
                 }
             })
             .catch(error => {
                 alert(error);
             });
     }
-
     if (borrowRecsToUpd.length > 0) {
-        console.log("Upd: " + borrowRecsToUpd);
-
         await fetch('update_borrow_records.do', {
             method: 'POST',
             headers: {
@@ -75,9 +68,9 @@ async function saveChangesToDB(e) {
             body: JSON.stringify(Array.from(borrowRecsToUpd))
         })
             .then(res => res.ok)
-            .then(async res => {
+            .then(res => {
                 if (res) {
-                    alert('CHANGES WERE SAVED!');
+                    alert('BORROW RECORDS UPDATED!');
                 }
             })
             .catch(error => {
@@ -87,16 +80,21 @@ async function saveChangesToDB(e) {
 
     let bookEditForm = document.getElementById('editBookForm');
 
-    let input = document.createElement('input');
-    console.log(remainingAmount);
-    console.log(bookStatus.innerText);
-    input.setAttribute('remainingAmount', remainingAmount);
-    input.setAttribute('status', bookStatus.innerText);
-    input.setAttribute('type', 'hidden');
+    document.getElementById('remainingAmount').value = remainingAmount;
+    document.getElementById('newBookStatus').value = bookStatus.innerText;
 
-    bookEditForm.appendChild(input);
+    // let input = document.createElement('input');
+    // console.log(remainingAmount);
+    // console.log(bookStatus.innerText);
+    // input.setAttribute('name', 'remainingAmount');
+    // input.setAttribute('value', remainingAmount);
+    // input.setAttribute('id', "remainingAmount");
+    // // input.setAttribute('status', bookStatus.innerText);
+    // input.setAttribute('type', 'hidden');
+    //
+    // bookEditForm.appendChild(input);
 
-    document.getElementById('editBookForm').submit();
+    bookEditForm.submit();
 }
 
 const loadReaders = async () => {
@@ -108,6 +106,9 @@ const loadReaders = async () => {
 
 const loadBorrowRecs = async () => {
     const res = await fetch('load_borrow_records.do?bookId=' + bookId);
+
+    console.log(remainingAmount);
+    console.log(bookStatus.innerText);
 
     if (res.status === 200) {
         borrowRecords = await res.json();
@@ -165,7 +166,6 @@ function editBorRec(e) {
             break;
         }
     }
-    console.log(borrowRecsToUpd);
 }
 
 function monthDiff(dateFrom, dateTo) {
@@ -345,7 +345,7 @@ function addBorrowRec(e) {
         bookStatus.innerText = statusStr.replace(statusStr.match(new RegExp(remainingAmount)).toString(),
             (--remainingAmount).toString());
 
-        console.log(remainingAmount);
+        // console.log(remainingAmount);
 
         // TODO hide modal properly
         // document.getElementById('addBorrowRecModal').style.display = 'none';
