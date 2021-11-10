@@ -8,6 +8,7 @@ import by.itechart.BookLibrary.model.entity.BorrowRecord;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static by.itechart.BookLibrary.model.dao.impl.SqlSymbols.*;
 
@@ -15,11 +16,16 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
     private static final String SELECT_LIST = "SELECT borrow_record_id, email, name, borrow_date, due_date, return_date, status, comment" +
             " FROM borrow_records JOIN readers ON reader_email_fk = email WHERE book_id_fk = ?;";
 
-    public static final String INSERT = "INSERT INTO borrow_records(borrow_date, due_date, book_id_fk, reader_email_fk)" +
+    private static final String INSERT = "INSERT INTO borrow_records(borrow_date, due_date, book_id_fk, reader_email_fk)" +
             " VALUES ";
 
-    public static final String UPDATE = "UPDATE borrow_records SET status = (";
-    public static final String WHEN_READER_EMAIL = " WHEN reader_email_fk = ";
+    private static final String UPDATE = "UPDATE borrow_records SET status = (";
+
+    private static final String WHEN_READER_EMAIL = " WHEN reader_email_fk = ";
+
+    private static final String FIND_AVAILABILITY_DATE = "SELECT MIN(due_date) FROM borrow_records WHERE book_id_fk = ?" +
+            " AND return_date IS NULL;";
+
     public static final String CASE = " CASE ";
     public static final String THEN = " THEN ";
     public static final String END = " END ";
@@ -144,6 +150,19 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
         }
 
         return borrowRecords;
+    }
+
+    @Override
+    public Optional<String> findAvailabilityDate(short bookId) {
+        try (Connection connection = DataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(FIND_AVAILABILITY_DATE)) {
+            statement.setShort(1, bookId);
+            ResultSet rs = statement.executeQuery();
+
+            return rs.next() ? Optional.of(rs.getString("min(due_date)")) : Optional.empty();
+        } catch (SQLException | NumberFormatException e) {
+            throw new DaoException("Error loading borrow records.", e);
+        }
     }
 
     private BorrowRecord createBorrowRecFromRS(ResultSet rs, short bookId) throws SQLException {

@@ -11,6 +11,7 @@ import by.itechart.BookLibrary.model.service.BorrowRecordService;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class BorrowRecordServiceImpl implements BorrowRecordService {
     private static final BorrowRecordDao borrowRecordDao = DaoFactory.getInstance().getBorrowRecordDao();
@@ -37,6 +38,15 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
     public List<BorrowRecord> loadBorrowRecords(short bookId) {
         try{
             return borrowRecordDao.loadBorrowRecords(bookId);
+        } catch (DaoException e){
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public Optional<String> findAvailabilityDate(short bookId) {
+        try{
+            return borrowRecordDao.findAvailabilityDate(bookId);
         } catch (DaoException e){
             throw new ServiceException(e);
         }

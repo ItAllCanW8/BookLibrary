@@ -153,10 +153,10 @@
 
                             <hr style="width:100%;text-align:left;margin-left:0">
                             <c:if test="${book.id != null}">
-                                <h3>
+                                <h4>
                                     <label>Status:</label>
                                     <div id="bookStatus">${book.status}</div>
-                                </h3>
+                                </h4>
                             </c:if>
 
                             <h4>
@@ -333,6 +333,7 @@
 <script type="application/javascript">
     const bookId = `${book.id}`;
     let remainingAmount = `${book.remainingAmount}`;
+    let totalAmount = `${book.totalAmount}`;
     let bookStatus = document.getElementById('bookStatus');
 </script>
 <script src="${pageContext.request.contextPath}/js/book_page.js"></script>

@@ -41,6 +41,9 @@ public enum CommandType {
     }},
     UPDATE_BORROW_RECORDS{{
         this.command = new UpdateBorrowRecords();
+    }},
+    LOAD_AVAILABILITY_DATE{{
+        this.command = new LoadAvailabilityDate();
     }};
 
     Command command;

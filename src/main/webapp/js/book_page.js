@@ -2,7 +2,11 @@ let borrowRecords = [];
 window.onload = () => loadBorrowRecs();
 let oldBorRecLength = 0;
 
+let readers;
+
 let borrowRecsToUpd = [];
+
+let bookAvailabilityDate;
 
 let saveToDBButt = document.getElementById('saveToDBButt');
 saveToDBButt.addEventListener('click', saveChangesToDB);
@@ -15,8 +19,6 @@ editBorRecButt.addEventListener('click', editBorRec)
 
 const matchList = document.getElementById('matchList');
 
-let readers;
-
 let listItems = document.getElementById('matchList');
 listItems.addEventListener('click', itemSelected)
 
@@ -28,6 +30,9 @@ const addBorrowRecButt = document.getElementById('addBorrowRecButt');
 addBorrowRecButt.addEventListener('click', () => loadReaders());
 
 const timePeriodSelected = document.getElementById("timePeriodSelect");
+
+const inputBookTotalAmount = document.getElementById('inputBookTotalAmount');
+inputBookTotalAmount.addEventListener('change', totalAmountValidation);
 
 async function saveChangesToDB(e) {
     e.preventDefault();
@@ -107,14 +112,13 @@ const loadReaders = async () => {
 const loadBorrowRecs = async () => {
     const res = await fetch('load_borrow_records.do?bookId=' + bookId);
 
-    console.log(remainingAmount);
-    console.log(bookStatus.innerText);
-
     if (res.status === 200) {
         borrowRecords = await res.json();
         oldBorRecLength = borrowRecords.length;
 
-        await fillBorrowRecTable();
+        await loadAvailabilityDate();
+
+        fillBorrowRecTable();
     }
 };
 
@@ -163,6 +167,25 @@ function editBorRec(e) {
                 }
             }
 
+            let statusStr = bookStatus.innerText;
+            const isBookAvailable = parseInt(remainingAmount) > 0;
+
+            console.log(remainingAmount)
+            console.log(isBookAvailable);
+
+            if (newStatus === 'lost' || newStatus === 'returned and damaged') {
+                totalAmount--;
+
+                if (isBookAvailable) {
+                    bookStatus.innerText = statusStr.replace(statusStr.match(new RegExp(totalAmount)).toString(),
+                        totalAmount.toString());
+                }
+            } else {
+                remainingAmount++;
+                console.log(remainingAmount);
+                bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
+            }
+
             break;
         }
     }
@@ -199,8 +222,18 @@ function createNameDiv(readerName, readerEmail) {
                 document.getElementById('timePeriodEdit').value = monthDiff(borrowDate, dueDate);
 
                 let statusSelect = document.getElementById('statusSelect');
-                console.log(statusSelect)
-                console.log(borrowRecord.status)
+
+                const commentInput = document.getElementById('commentInput');
+                const editBorRecButt = document.getElementById('editBorRecButt');
+
+                if(typeof borrowRecord.returnDate !== 'undefined'){
+                    commentInput.disabled = true;
+                    editBorRecButt.hidden = true;
+                } else {
+                    commentInput.disabled = false;
+                    editBorRecButt.hidden = false;
+                }
+
                 if (typeof borrowRecord.status === 'undefined') {
                     statusSelect.value = 1;
                 } else {
@@ -213,7 +246,7 @@ function createNameDiv(readerName, readerEmail) {
                     comment = borrowRecord.comment;
                 }
 
-                document.getElementById('commentInput').value = comment;
+                commentInput.value = comment;
 
                 break;
             }
@@ -252,7 +285,6 @@ function fillBorrowRecTable() {
 
         if (typeof borrowRecords[i].returnDate !== 'undefined') {
             let returnDate = toISOLocal(new Date(borrowRecords[i].returnDate)).slice(0, 19).replace('T', ' ');
-            console.log(returnDate);
 
             returnDateDiv.appendChild(document.createTextNode(returnDate));
         } else {
@@ -298,6 +330,16 @@ function itemSelected(e) {
     readerNameInput.value = e.target.getAttribute("value");
 }
 
+const loadAvailabilityDate = async () => {
+    const res = await fetch(`load_availability_date.do?bookId=${bookId}`);
+
+    if (res.status === 200) {
+        const dateStr = await res.json();
+
+        bookAvailabilityDate = new Date(dateStr);
+    }
+};
+
 function addBorrowRec(e) {
     if (remainingAmount <= 0) {
         alert('SORRY, THERE IS NO MORE COPIES OF THIS BOOK REMAIN!');
@@ -322,6 +364,10 @@ function addBorrowRec(e) {
         date.setMonth(date.getMonth() + parseInt(timePeriodSelected.value));
         dueDateCell.appendChild(document.createTextNode(date.toLocaleDateString()));
 
+        if (typeof bookAvailabilityDate === 'undefined' || date.getTime() < bookAvailabilityDate.getTime()) {
+            bookAvailabilityDate = date;
+        }
+
         let returnDateCell = row.insertCell(4);
         let returnDateDiv = document.createElement("div");
         returnDateDiv.id = readerEmailInput.value + 'RD';
@@ -341,11 +387,16 @@ function addBorrowRec(e) {
 
         borrowRecords.push(borrowRec);
 
-        let statusStr = bookStatus.innerText;
-        bookStatus.innerText = statusStr.replace(statusStr.match(new RegExp(remainingAmount)).toString(),
-            (--remainingAmount).toString());
+        remainingAmount--;
 
-        // console.log(remainingAmount);
+        if (remainingAmount > 0) {
+            bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
+        } else {
+            const options = {year: 'numeric', month: 'long', day: 'numeric'};
+            const formattedAvailDate = new Date(bookAvailabilityDate).toLocaleDateString("en", options);
+            console.log(formattedAvailDate);
+            bookStatus.innerText = `Unavailable (expected to become available on ${formattedAvailDate})`;
+        }
 
         // TODO hide modal properly
         // document.getElementById('addBorrowRecModal').style.display = 'none';
@@ -358,6 +409,30 @@ function addBorrowRec(e) {
     } else {
         alert(`READER ${readerNameInput.value} HAS ALREADY BORROWED THIS BOOK!`);
     }
+}
+
+function totalAmountValidation(e){
+    const newTotalAmount = e.target.value;
+
+    if(Number.isInteger(newTotalAmount)){
+        const borrowedAmount = totalAmount - remainingAmount;
+
+        if(parseInt(newTotalAmount) >= borrowedAmount){
+            const difference = totalAmount - newTotalAmount;
+
+            remainingAmount = difference < 0 ? remainingAmount + Math.abs(difference) : remainingAmount - difference;
+            totalAmount = newTotalAmount;
+
+            console.log("Rem " + remainingAmount);
+            console.log("Total " + totalAmount);
+        } else {
+            alert("TOTAL AMOUNT MUST BE >= NUMBER OF BORROWED COPIES!")
+        }
+    } else {
+        alert("TOTAL AMOUNT MUST BE A NUMBER!")
+    }
+
+    console.log(e.target.value);
 }
 
 function toISOLocal(date) {
