@@ -276,18 +276,6 @@ public class BookServiceImpl implements BookService {
         short newTotalAmount = Short.parseShort(fields.get(RequestParameter.BOOK_TOTAL_AMOUNT));
         String newDescription = fields.get(RequestParameter.BOOK_DESCRIPTION);
 
-        short remainingAmount = book.getRemainingAmount();
-        String statusPrefix = remainingAmount > 0 ? "Available (" : "Unavailable (";
-
-        if (remainingAmount > newTotalAmount) {
-            book.setRemainingAmount(newTotalAmount);
-        } else if (remainingAmount < newTotalAmount) {
-            short oldTotalAmount = book.getTotalAmount();
-            book.setRemainingAmount((short) (remainingAmount + (newTotalAmount - oldTotalAmount)));
-        }
-
-        String newStatus = statusPrefix + book.getRemainingAmount() + " out of " + newTotalAmount + ")";
-
         book.setTitle(newTitle);
         book.setAuthors(newAuthors);
         book.setPublisher(newPublisher);
@@ -297,6 +285,7 @@ public class BookServiceImpl implements BookService {
         book.setIsbn(newIsbn);
         book.setTotalAmount(newTotalAmount);
         book.setDescription(newDescription);
-        book.setStatus(newStatus);
+        book.setStatus(fields.get(RequestParameter.BOOK_STATUS));
+        book.setRemainingAmount(Short.parseShort(fields.get(RequestParameter.BOOK_REMAINING_AMOUNT)));
     }
 }

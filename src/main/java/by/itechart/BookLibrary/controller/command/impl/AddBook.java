@@ -16,7 +16,7 @@ import java.util.Map;
 public class AddBook implements Command {
     @Override
     public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
-        Map<String, String> fields = EditBook.receiveBookFields(req);
+        Map<String, String> fields = EditBook.receiveBookFieldsFromReq(req, false);
 
         BookService service = ServiceFactory.getInstance().getBookService();
         CommandResult result = new CommandResult(CommandUrl.HOME, CommandResult.Type.REDIRECT);

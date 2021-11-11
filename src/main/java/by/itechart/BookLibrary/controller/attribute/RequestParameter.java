@@ -15,6 +15,8 @@ public class RequestParameter {
     public static final String BOOK_TOTAL_AMOUNT = "bookTotalAmount";
     public static final String BOOK_DESCRIPTION = "bookDescription";
     public static final String BOOK_COVER = "bookCover";
+    public static final String BOOK_STATUS = "bookStatus";
+    public static final String BOOK_REMAINING_AMOUNT = "remainingAmount";
 
     public static final String CURRENT_DATE = "currentDate";
     public static final String PAGE = "page";

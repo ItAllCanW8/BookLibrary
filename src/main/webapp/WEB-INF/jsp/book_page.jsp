@@ -169,7 +169,7 @@
                             </h4>
 
                             <input type="hidden" id="remainingAmount" name="remainingAmount">
-                            <input type="hidden" id="newBookStatus" name="newBookStatus">
+                            <input type="hidden" id="bookStatusInput" name="bookStatus">
 
                             <button type="submit" id="saveToDBButt" class="btn btn-outline-success">Save</button>
                             <a href="${pageContext.request.contextPath}/home.do" class="btn btn-outline-warning"
@@ -332,8 +332,8 @@
 
 <script type="application/javascript">
     const bookId = `${book.id}`;
-    let remainingAmount = `${book.remainingAmount}`;
-    let totalAmount = `${book.totalAmount}`;
+    let remainingAmount = ${book.remainingAmount};
+    let totalAmount = ${book.totalAmount};
     let bookStatus = document.getElementById('bookStatus');
 </script>
 <script src="${pageContext.request.contextPath}/js/book_page.js"></script>

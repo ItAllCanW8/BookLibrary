@@ -36,6 +36,8 @@ public class LoadReaders implements Command {
                 writer.close();
 
 //                req.setAttribute(RequestParameter.READERS, g.toJson(readers));
+            } else {
+                resp.setStatus(204);
             }
         } catch (ServiceException | IOException e){
             throw new CommandException(e);

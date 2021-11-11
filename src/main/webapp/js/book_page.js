@@ -1,6 +1,6 @@
 let borrowRecords = [];
 window.onload = () => loadBorrowRecs();
-let oldBorRecLength = 0;
+let initialBorRecLength = 0;
 
 let readers;
 
@@ -39,13 +39,16 @@ async function saveChangesToDB(e) {
 
     let newBorRecLength = borrowRecords.length;
 
-    if (newBorRecLength > oldBorRecLength) {
+    let successCounter = 0;
+    let counterExpectedVal = 0;
+
+    if (newBorRecLength > initialBorRecLength) {
+        counterExpectedVal++;
+
         let borrowRecsToInsert = [];
-        for (let i = oldBorRecLength; i < newBorRecLength; i++) {
+        for (let i = initialBorRecLength; i < newBorRecLength; i++) {
             borrowRecsToInsert.push(borrowRecords[i]);
         }
-
-        console.log("Insert: " + borrowRecsToInsert);
 
         await fetch('add_borrow_records.do', {
             method: 'POST',
@@ -57,7 +60,7 @@ async function saveChangesToDB(e) {
             .then(res => res.ok)
             .then(res => {
                 if (res) {
-                    alert('BORROW RECORDS UPDATED!');
+                    successCounter++;
                 }
             })
             .catch(error => {
@@ -65,6 +68,10 @@ async function saveChangesToDB(e) {
             });
     }
     if (borrowRecsToUpd.length > 0) {
+        console.log('update');
+
+        counterExpectedVal++;
+
         await fetch('update_borrow_records.do', {
             method: 'POST',
             headers: {
@@ -75,7 +82,7 @@ async function saveChangesToDB(e) {
             .then(res => res.ok)
             .then(res => {
                 if (res) {
-                    alert('BORROW RECORDS UPDATED!');
+                    successCounter++;
                 }
             })
             .catch(error => {
@@ -83,29 +90,35 @@ async function saveChangesToDB(e) {
             });
     }
 
+    document.getElementById('remainingAmount').value = remainingAmount;
+    document.getElementById('bookStatusInput').value = bookStatus.innerText;
+
+
     let bookEditForm = document.getElementById('editBookForm');
 
-    document.getElementById('remainingAmount').value = remainingAmount;
-    document.getElementById('newBookStatus').value = bookStatus.innerText;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `edit_book.do?bookId=${bookId}`);
+    xhr.onload = function(event){
+        if(event.target.status === 200 && successCounter === counterExpectedVal){
+            if(!alert('ALL CHANGES WERE SAVED!')){
+                location.reload();
+            }
+        } else {
+            alert('OOPS! SOME ERROR OCCURRED DURING SAVING CHANGES.')
+        }
+    };
 
-    // let input = document.createElement('input');
-    // console.log(remainingAmount);
-    // console.log(bookStatus.innerText);
-    // input.setAttribute('name', 'remainingAmount');
-    // input.setAttribute('value', remainingAmount);
-    // input.setAttribute('id', "remainingAmount");
-    // // input.setAttribute('status', bookStatus.innerText);
-    // input.setAttribute('type', 'hidden');
-    //
-    // bookEditForm.appendChild(input);
-
-    bookEditForm.submit();
+    const formData = new FormData(bookEditForm);
+    xhr.send(formData);
 }
 
 const loadReaders = async () => {
     if (typeof readers === 'undefined') {
         const res = await fetch('load_readers.do');
-        readers = await res.json();
+
+        if (res.status === 200) {
+            readers = await res.json();
+        }
     }
 };
 
@@ -114,7 +127,7 @@ const loadBorrowRecs = async () => {
 
     if (res.status === 200) {
         borrowRecords = await res.json();
-        oldBorRecLength = borrowRecords.length;
+        initialBorRecLength = borrowRecords.length;
 
         await loadAvailabilityDate();
 
@@ -167,24 +180,14 @@ function editBorRec(e) {
                 }
             }
 
-            let statusStr = bookStatus.innerText;
-            const isBookAvailable = parseInt(remainingAmount) > 0;
-
-            console.log(remainingAmount)
-            console.log(isBookAvailable);
-
             if (newStatus === 'lost' || newStatus === 'returned and damaged') {
                 totalAmount--;
-
-                if (isBookAvailable) {
-                    bookStatus.innerText = statusStr.replace(statusStr.match(new RegExp(totalAmount)).toString(),
-                        totalAmount.toString());
-                }
+                inputBookTotalAmount.value = totalAmount;
             } else {
                 remainingAmount++;
-                console.log(remainingAmount);
-                bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
             }
+
+            updateBookStatus();
 
             break;
         }
@@ -389,14 +392,7 @@ function addBorrowRec(e) {
 
         remainingAmount--;
 
-        if (remainingAmount > 0) {
-            bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
-        } else {
-            const options = {year: 'numeric', month: 'long', day: 'numeric'};
-            const formattedAvailDate = new Date(bookAvailabilityDate).toLocaleDateString("en", options);
-            console.log(formattedAvailDate);
-            bookStatus.innerText = `Unavailable (expected to become available on ${formattedAvailDate})`;
-        }
+        updateBookStatus();
 
         // TODO hide modal properly
         // document.getElementById('addBorrowRecModal').style.display = 'none';
@@ -411,28 +407,38 @@ function addBorrowRec(e) {
     }
 }
 
+function updateBookStatus(){
+    if (remainingAmount > 0) {
+        bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
+    } else {
+        const options = {year: 'numeric', month: 'long', day: 'numeric'};
+        const formattedAvailDate = new Date(bookAvailabilityDate).toLocaleDateString("en", options);
+        console.log(formattedAvailDate);
+        bookStatus.innerText = `Unavailable (expected to become available on ${formattedAvailDate})`;
+    }
+}
+
 function totalAmountValidation(e){
-    const newTotalAmount = e.target.value;
+    const newTotalAmount = parseInt(e.target.value);
 
     if(Number.isInteger(newTotalAmount)){
         const borrowedAmount = totalAmount - remainingAmount;
 
-        if(parseInt(newTotalAmount) >= borrowedAmount){
+        if(newTotalAmount >= borrowedAmount){
             const difference = totalAmount - newTotalAmount;
 
             remainingAmount = difference < 0 ? remainingAmount + Math.abs(difference) : remainingAmount - difference;
             totalAmount = newTotalAmount;
 
-            console.log("Rem " + remainingAmount);
-            console.log("Total " + totalAmount);
+            updateBookStatus();
         } else {
-            alert("TOTAL AMOUNT MUST BE >= NUMBER OF BORROWED COPIES!")
+            alert("TOTAL AMOUNT MUST BE >= NUMBER OF BORROWED COPIES!");
+            inputBookTotalAmount.value = totalAmount;
         }
     } else {
-        alert("TOTAL AMOUNT MUST BE A NUMBER!")
+        alert("TOTAL AMOUNT MUST BE A NUMBER!");
+        inputBookTotalAmount.value = totalAmount;
     }
-
-    console.log(e.target.value);
 }
 
 function toISOLocal(date) {
