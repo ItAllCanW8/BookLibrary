@@ -2,9 +2,11 @@ let borrowRecords = [];
 window.onload = () => loadBorrowRecs();
 let initialBorRecLength = 0;
 
-let readers;
-
 let borrowRecsToUpd = [];
+
+let readers;
+let readersToInsert = [];
+let isNewReaderPresent = false;
 
 let bookAvailabilityDate;
 
@@ -42,7 +44,30 @@ async function saveChangesToDB(e) {
     let successCounter = 0;
     let counterExpectedVal = 0;
 
-    if (newBorRecLength > initialBorRecLength) {
+    let errors = [];
+
+    if (readersToInsert.length > 0) {
+        counterExpectedVal++;
+
+        await fetch('add_readers.do', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Array.from(readersToInsert))
+        })
+            .then(res => res.ok)
+            .then(res => {
+                if (res) {
+                    successCounter++;
+                }
+            })
+            .catch(error => {
+                errors.push(error.message);
+            });
+    }
+
+    if (newBorRecLength > initialBorRecLength && successCounter === counterExpectedVal) {
         counterExpectedVal++;
 
         let borrowRecsToInsert = [];
@@ -64,12 +89,10 @@ async function saveChangesToDB(e) {
                 }
             })
             .catch(error => {
-                alert(error);
+                errors.push(error.message);
             });
     }
-    if (borrowRecsToUpd.length > 0) {
-        console.log('update');
-
+    if (borrowRecsToUpd.length > 0 && successCounter === counterExpectedVal) {
         counterExpectedVal++;
 
         await fetch('update_borrow_records.do', {
@@ -86,30 +109,42 @@ async function saveChangesToDB(e) {
                 }
             })
             .catch(error => {
-                alert(error);
+                errors.push(error.message);
             });
     }
 
-    document.getElementById('remainingAmount').value = remainingAmount;
-    document.getElementById('bookStatusInput').value = bookStatus.innerText;
+    if(successCounter === counterExpectedVal){
+        document.getElementById('remainingAmount').value = remainingAmount;
+        document.getElementById('bookStatusInput').value = bookStatus.innerText;
 
+        let bookEditForm = document.getElementById('editBookForm');
 
-    let bookEditForm = document.getElementById('editBookForm');
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `edit_book.do?bookId=${bookId}`);
-    xhr.onload = function(event){
-        if(event.target.status === 200 && successCounter === counterExpectedVal){
-            if(!alert('ALL CHANGES WERE SAVED!')){
-                location.reload();
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `edit_book.do?bookId=${bookId}`);
+        xhr.onload = function (event) {
+            if (event.target.status === 200 && successCounter === counterExpectedVal) {
+                // wait for user to press OK than reload page
+                if (!alert('ALL CHANGES WERE SAVED!')) {
+                    location.reload();
+                }
+            } else {
+                errors.push('OOPS! SOME ERROR OCCURRED DURING SAVING CHANGES.');
             }
-        } else {
-            alert('OOPS! SOME ERROR OCCURRED DURING SAVING CHANGES.')
-        }
-    };
+        };
 
-    const formData = new FormData(bookEditForm);
-    xhr.send(formData);
+        const formData = new FormData(bookEditForm);
+        xhr.send(formData);
+    }
+
+    if(errors.length > 0){
+        let msg;
+
+        for (const err of errors) {
+            msg += `!!! ${err}\n`;
+        }
+
+        alert(msg);
+    }
 }
 
 const loadReaders = async () => {
@@ -129,7 +164,9 @@ const loadBorrowRecs = async () => {
         borrowRecords = await res.json();
         initialBorRecLength = borrowRecords.length;
 
-        await loadAvailabilityDate();
+        if (remainingAmount < totalAmount) {
+            await loadAvailabilityDate();
+        }
 
         fillBorrowRecTable();
     }
@@ -229,7 +266,7 @@ function createNameDiv(readerName, readerEmail) {
                 const commentInput = document.getElementById('commentInput');
                 const editBorRecButt = document.getElementById('editBorRecButt');
 
-                if(typeof borrowRecord.returnDate !== 'undefined'){
+                if (typeof borrowRecord.returnDate !== 'undefined') {
                     commentInput.disabled = true;
                     editBorRecButt.hidden = true;
                 } else {
@@ -299,6 +336,7 @@ function fillBorrowRecTable() {
 
 function emailInput(e) {
     matchList.innerHTML = '';
+    readerNameInput.value = '';
 
     if (readerEmailInput.value.length > 3) {
         const emailInput = readerEmailInput.value;
@@ -312,7 +350,12 @@ function emailInput(e) {
             }
         }
 
-        showMatchingEmails(matchingReaders);
+        if (matchingReaders.size !== 0) {
+            showMatchingEmails(matchingReaders);
+        } else {
+            // readersToInsert.push(readerEmailInput.value);
+            isNewReaderPresent = true;
+        }
     }
 }
 
@@ -344,6 +387,16 @@ const loadAvailabilityDate = async () => {
 };
 
 function addBorrowRec(e) {
+    if (isNewReaderPresent) {
+        //TODO && readerEmailInput.value is valid
+        let newReader = {
+            email: readerEmailInput.value,
+            name: readerNameInput.value
+        }
+
+        readersToInsert.push(newReader);
+    }
+
     if (remainingAmount <= 0) {
         alert('SORRY, THERE IS NO MORE COPIES OF THIS BOOK REMAIN!');
     } else if (!borrowRecords.some(e => e.readerEmail === readerEmailInput.value)) {
@@ -407,7 +460,7 @@ function addBorrowRec(e) {
     }
 }
 
-function updateBookStatus(){
+function updateBookStatus() {
     if (remainingAmount > 0) {
         bookStatus.innerText = `Available (${remainingAmount} out of ${totalAmount})`;
     } else {
@@ -418,13 +471,13 @@ function updateBookStatus(){
     }
 }
 
-function totalAmountValidation(e){
+function totalAmountValidation(e) {
     const newTotalAmount = parseInt(e.target.value);
 
-    if(Number.isInteger(newTotalAmount)){
+    if (Number.isInteger(newTotalAmount)) {
         const borrowedAmount = totalAmount - remainingAmount;
 
-        if(newTotalAmount >= borrowedAmount){
+        if (newTotalAmount >= borrowedAmount) {
             const difference = totalAmount - newTotalAmount;
 
             remainingAmount = difference < 0 ? remainingAmount + Math.abs(difference) : remainingAmount - difference;

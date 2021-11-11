@@ -29,7 +29,6 @@ public class LoadAvailabilityDate implements Command {
 
             if(availabilityDateOpt.isPresent()){
                 String availabilityDate = LocalDate.parse(availabilityDateOpt.get().split(" ")[0]).toString();
-//                        .format(DateTimeFormatter.ofPattern("MMMM d, uuuu", Locale.ENGLISH));
 
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
@@ -37,8 +36,6 @@ public class LoadAvailabilityDate implements Command {
                 PrintWriter writer = resp.getWriter();
                 writer.write(new Gson().toJson(availabilityDate));
                 writer.close();
-
-                System.out.println(new Gson().toJson(availabilityDate));
             } else {
                 resp.setStatus(204);
             }

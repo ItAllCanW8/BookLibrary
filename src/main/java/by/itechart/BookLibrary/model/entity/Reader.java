@@ -7,8 +7,6 @@ public class Reader implements Serializable {
     private short id;
     private String name;
     private String email;
-    private String registrationDate;
-    private String phoneNumber;
 
     public Reader(){}
 
@@ -41,22 +39,6 @@ public class Reader implements Serializable {
         this.email = email;
     }
 
-    public String getRegistrationDate() {
-        return registrationDate;
-    }
-
-    public void setRegistrationDate(String registrationDate) {
-        this.registrationDate = registrationDate;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,15 +47,13 @@ public class Reader implements Serializable {
         Reader reader = (Reader) o;
 
         if (!name.equals(reader.name)) return false;
-        if (!email.equals(reader.email)) return false;
-        return Objects.equals(phoneNumber, reader.phoneNumber);
+        return email.equals(reader.email);
     }
 
     @Override
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + email.hashCode();
-        result = 31 * result + (phoneNumber != null ? phoneNumber.hashCode() : 0);
         return result;
     }
 
@@ -83,8 +63,6 @@ public class Reader implements Serializable {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
-                ", registrationDate='" + registrationDate + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
                 '}';
     }
 }

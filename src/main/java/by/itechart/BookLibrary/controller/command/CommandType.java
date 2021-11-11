@@ -44,6 +44,9 @@ public enum CommandType {
     }},
     LOAD_AVAILABILITY_DATE{{
         this.command = new LoadAvailabilityDate();
+    }},
+    ADD_READERS{{
+        this.command = new AddReaders();
     }};
 
     Command command;

@@ -26,11 +26,6 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
     private static final String FIND_AVAILABILITY_DATE = "SELECT MIN(due_date) FROM borrow_records WHERE book_id_fk = ?" +
             " AND return_date IS NULL;";
 
-    public static final String CASE = " CASE ";
-    public static final String THEN = " THEN ";
-    public static final String END = " END ";
-    public static final String AND = " AND ";
-
     @Override
     public boolean add(Connection connection, List<BorrowRecord> borrowRecords) {
         try (Statement statement = connection.createStatement()) {
