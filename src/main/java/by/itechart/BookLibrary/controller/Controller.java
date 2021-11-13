@@ -39,15 +39,15 @@ public class Controller extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        try{
-            List<BorrowRecord> borrowRecords = ServiceFactory.getInstance().getBorrowRecordService().loadDataForNotifications();
-
-            if(borrowRecords.size() > 0){
-                new MailServiceImpl().sendNotificationsToReaders(borrowRecords);
-            }
-        } catch (ServiceException | IOException | TemplateException e){
-            throw new ServletException(e);
-        }
+//        try{
+//            List<BorrowRecord> borrowRecords = ServiceFactory.getInstance().getBorrowRecordService().loadDataForNotifications();
+//
+//            if(borrowRecords.size() > 0){
+//                new MailServiceImpl().sendNotificationsToReaders(borrowRecords);
+//            }
+//        } catch (ServiceException | IOException | TemplateException e){
+//            throw new ServletException(e);
+//        }
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

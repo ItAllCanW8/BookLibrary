@@ -41,6 +41,8 @@ public class Search implements Command {
 
             if (books.size() > 0) {
                 req.setAttribute(RequestParameter.BOOKS, books);
+                System.out.println("EEE");
+                System.out.println(books);
 //                req.setAttribute(RequestParameter.NUMBER_OF_PAGES, numberOfPages);
 //                req.setAttribute(RequestParameter.CURRENT_PAGE, page);
 //                req.setAttribute(RequestParameter.RECORDS_PER_PAGE, recordsPerPage);
@@ -52,6 +54,6 @@ public class Search implements Command {
             throw new CommandException(e);
         }
 
-        return new CommandResult(PagePath.SEARCH_PAGE, CommandResult.Type.FORWARD);
+        return new CommandResult(CommandResult.Type.ASYNC);
     }
 }

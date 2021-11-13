@@ -181,162 +181,165 @@
     </div>
 </section>
 
-<section class="course_section layout_padding-bottom">
-    <div class="container">
-        <div class="heading_container">
-            <h3>
-                Borrow Records
-            </h3>
+<c:if test="${book.id != null}">
 
-            <hr style="width:100%;text-align:left;margin-left:0">
-            <div>
-                <button type="button" id="addBorrowRecButt" class="btn btn-outline-success" data-bs-toggle="modal"
-                        data-bs-target="#addBorrowRecModal" style="margin-top: 1%; margin-bottom: 1%">Add
-                </button>
-            </div>
-        </div>
-        <div class="event_container">
-            <table id="borrowRecTable" class="table table-bordered border-secondary">
-                <thead>
-                <tr>
-                    <th scope="col">Reader email</th>
-                    <th scope="col">Reader name</th>
-                    <th scope="col">Borrow date</th>
-                    <th scope="col">Due date</th>
-                    <th scope="col">Return date</th>
-                </tr>
-                </thead>
+    <section class="course_section layout_padding-bottom">
+        <div class="container">
+            <div class="heading_container">
+                <h3>
+                    Borrow Records
+                </h3>
 
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addBorrowRecModal" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Add borrow record</h4>
-                </div>
-
-                <div class="modal-body">
-                    <label for="readerEmailInput">Reader email</label>
-                    <div class="form-group mt-1 search-input">
-                        <input type="search" class="form-control field" id="readerEmailInput"
-                               name="readerEmail"
-                               placeholder="start to input..."
-                               required>
-                        <ul id="matchList" class="autocom-box"></ul>
-                    </div>
-
-                    <div class="mt-3">
-                        <label for="readerName">Reader name</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input type="text" class="form-control field" id="readerName" name="readerName">
-                    </div>
-
-                    <div class="mt-3">
-                        <label for="timePeriodSelect">Time period, months</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <div class="btn-group">
-                            <select id="timePeriodSelect">
-                                <option value="1" selected>1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="6">6</option>
-                                <option value="12">12</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard
+                <hr style="width:100%;text-align:left;margin-left:0">
+                <div>
+                    <button type="button" id="addBorrowRecButt" class="btn btn-outline-success" data-bs-toggle="modal"
+                            data-bs-target="#addBorrowRecModal" style="margin-top: 1%; margin-bottom: 1%">Add
                     </button>
-                    <button type="button" class="btn btn-primary" id="saveBorrowRecButt">Save</button>
                 </div>
             </div>
+            <div class="event_container">
+                <table id="borrowRecTable" class="table table-bordered border-secondary">
+                    <thead>
+                    <tr>
+                        <th scope="col">Reader email</th>
+                        <th scope="col">Reader name</th>
+                        <th scope="col">Borrow date</th>
+                        <th scope="col">Due date</th>
+                        <th scope="col">Return date</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="editBorRecModal" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Edit borrow record</h4>
-                </div>
-
-                <div class="modal-body">
-                    <label for="readerEmailEdit">Reader email</label>
-                    <div class="form-group mt-1 search-input">
-                        <input type="text" class="form-control field" id="readerEmailEdit" readonly>
+        <div class="modal fade" id="addBorrowRecModal" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add borrow record</h4>
                     </div>
 
-                    <div class="mt-3">
-                        <label for="readerNameEdit">Reader name</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input type="text" class="form-control field" id="readerNameEdit" readonly>
-                    </div>
+                    <div class="modal-body">
+                        <label for="readerEmailInput">Reader email</label>
+                        <div class="form-group mt-1 search-input">
+                            <input type="search" class="form-control field" id="readerEmailInput"
+                                   name="readerEmail"
+                                   placeholder="start to input..."
+                                   required>
+                            <ul id="matchList" class="autocom-box"></ul>
+                        </div>
 
-                    <label for="borrowDate">Borrow date</label>
-                    <div class="form-group mt-1">
-                        <input type="date" id="borrowDate" class="form-control field" readonly/>
-                    </div>
+                        <div class="mt-3">
+                            <label for="readerName">Reader name</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <input type="text" class="form-control field" id="readerName" name="readerName">
+                        </div>
 
-                    <div class="form-group mt-1">
-                        <label for="timePeriodEdit">Time period, months</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input type="text" class="form-control field" id="timePeriodEdit" readonly>
-                    </div>
-
-                    <div class="form-group mt-1">
-                        <label for="statusSelect">Status:</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <div class="btn-group">
-                            <select id="statusSelect">
-                                <option value="1" selected>returned</option>
-                                <option value="2">returned and damaged</option>
-                                <option value="3">lost</option>
-                            </select>
+                        <div class="mt-3">
+                            <label for="timePeriodSelect">Time period, months</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <div class="btn-group">
+                                <select id="timePeriodSelect">
+                                    <option value="1" selected>1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="6">6</option>
+                                    <option value="12">12</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group mt-1">
-                        <label for="commentInput">Comment</label>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="closeAddModalButt" data-bs-dismiss="modal">Discard
+                        </button>
+                        <button type="button" class="btn btn-primary" id="saveBorrowRecButt">Save</button>
                     </div>
-                    <textarea id="commentInput" class="form-control"
-                              rows="3"
-                              minlength="3"
-                              maxlength="255"></textarea>
-
-                    <input type="hidden" id="readerId">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close
-                    </button>
-                    <button type="button" class="btn btn-primary" id="editBorRecButt">Save</button>
                 </div>
             </div>
         </div>
-    </div>
-</section>
 
-<script type="application/javascript">
-    const bookId = `${book.id}`;
-    let remainingAmount = ${book.remainingAmount};
-    let totalAmount = ${book.totalAmount};
-    let bookStatus = document.getElementById('bookStatus');
-</script>
-<script src="${pageContext.request.contextPath}/js/book_page.js"></script>
+        <div class="modal fade" id="editBorRecModal" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Edit borrow record</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <label for="readerEmailEdit">Reader email</label>
+                        <div class="form-group mt-1 search-input">
+                            <input type="text" class="form-control field" id="readerEmailEdit" readonly>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="readerNameEdit">Reader name</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <input type="text" class="form-control field" id="readerNameEdit" readonly>
+                        </div>
+
+                        <label for="borrowDate">Borrow date</label>
+                        <div class="form-group mt-1">
+                            <input type="date" id="borrowDate" class="form-control field" readonly/>
+                        </div>
+
+                        <div class="form-group mt-1">
+                            <label for="timePeriodEdit">Time period, months</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <input type="text" class="form-control field" id="timePeriodEdit" readonly>
+                        </div>
+
+                        <div class="form-group mt-1">
+                            <label for="statusSelect">Status:</label>
+                        </div>
+                        <div class="form-group mt-1">
+                            <div class="btn-group">
+                                <select id="statusSelect">
+                                    <option value="1" selected>returned</option>
+                                    <option value="2">returned and damaged</option>
+                                    <option value="3">lost</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-1">
+                            <label for="commentInput">Comment</label>
+                        </div>
+                        <textarea id="commentInput" class="form-control"
+                                  rows="3"
+                                  minlength="3"
+                                  maxlength="255"></textarea>
+
+                        <input type="hidden" id="readerId">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="closeEditModalButt" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="editBorRecButt">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <script type="application/javascript">
+        const bookId = `${book.id}`;
+        let remainingAmount = ${book.remainingAmount};
+        let totalAmount = ${book.totalAmount};
+        let bookStatus = document.getElementById('bookStatus');
+    </script>
+    <script src="${pageContext.request.contextPath}/js/book_page.js"></script>
+</c:if>
 
 </body>
 

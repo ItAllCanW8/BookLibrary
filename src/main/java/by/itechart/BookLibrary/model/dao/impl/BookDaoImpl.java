@@ -236,7 +236,6 @@ public class BookDaoImpl implements BookDao {
 
                 rs = statement.executeQuery(loadBookAuthorsSB.toString());
                 joinBooksWithAuthors(rs, books);
-                System.out.println(books);
             }
         } catch (SQLException | NumberFormatException e) {
             throw new DaoException("Error searching books.", e);

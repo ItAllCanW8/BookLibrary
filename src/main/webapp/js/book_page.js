@@ -117,7 +117,7 @@ async function saveChangesToDB(e) {
         document.getElementById('remainingAmount').value = remainingAmount;
         document.getElementById('bookStatusInput').value = bookStatus.innerText;
 
-        let bookEditForm = document.getElementById('editBookForm');
+        const bookEditForm = document.getElementById('editBookForm');
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `edit_book.do?bookId=${bookId}`);
@@ -230,6 +230,8 @@ function editBorRec(e) {
             break;
         }
     }
+
+    document.getElementById('closeEditModalButt').click();
 }
 
 function monthDiff(dateFrom, dateTo) {
@@ -443,9 +445,6 @@ function addBorrowRec(e) {
                 email: readerEmailInput.value,
                 name: readerNameInput.value
             }
-            // bookIdFk: bookId,
-            // readerEmail: readerEmailInput.value,
-            // readerName: readerNameInput.value
         }
 
         borrowRecords.push(borrowRec);
@@ -454,14 +453,7 @@ function addBorrowRec(e) {
 
         updateBookStatus();
 
-        // TODO hide modal properly
-        // document.getElementById('addBorrowRecModal').style.display = 'none';
-        // document.getElementById('addBorrowRecModal');
-        // document.getElementById('addBorrowRecModal').classList.remove('show');
-        // document.getElementById('addBorrowRecModal').setAttribute('aria-hidden', 'true');
-        //
-        // const modalBackdrops = document.getElementsByClassName('modal-backdrop');
-        // document.body.removeChild(modalBackdrops[0]);
+        document.getElementById('closeAddModalButt').click();
     } else {
         alert(`READER ${readerNameInput.value} HAS ALREADY BORROWED THIS BOOK!`);
     }

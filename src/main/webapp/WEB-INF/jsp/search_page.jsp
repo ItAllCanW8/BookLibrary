@@ -31,18 +31,14 @@
             <input type="text" id="inputBookTitle" name="bookTitle"
                    class="form-control field"
                    placeholder="3 - 255 characters"
-                   required
-            <%--                                           pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"--%>
-                   value="${book.title}"/>
+                   required/>
 
             <label for="inputBookAuthors">Author(-s)</label>
             <div class="form-group mt-1">
                 <input type="text" id="inputBookAuthors" name="bookAuthors"
                        class="form-control field"
                        placeholder="3 - 255 characters"
-                       required
-                <%--                                           pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,500}"--%>
-                       value="${book.authors}"/>
+                       required/>
             </div>
 
             <label for="inputBookGenres">Genre(-s)</label>
@@ -50,9 +46,7 @@
                 <input type="text" id="inputBookGenres" name="bookGenres"
                        class="form-control field"
                        placeholder="3 - 255 characters"
-                       required
-                <%--                                           pattern="[a-zA-Z.,\p{Blank}]{3,500}"--%>
-                       value="${book.genres}"/>
+                       required/>
             </div>
 
             <label for="inputBookDescription">Description</label>
@@ -173,41 +167,11 @@
     </div>
 </section>
 
-<script type="application/javascript">
-    function search(e) {
-        e.preventDefault();
+<script src="${pageContext.request.contextPath}/js/search_page.js"></script>
 
-        if(!(document.getElementById('inputBookTitle').value === "" &&
-            document.getElementById('inputBookGenres').value === "" &&
-            document.getElementById('inputBookAuthors').value === "" &&
-            document.getElementById('inputBookDescription').value === "")){
-            document.getElementsByClassName('heading_container')[0].style.display = 'block';
-            document.getElementsByClassName('event_container')[0].style.display = 'block';
-
-            // document.getElementById('searchForm').submit();
-
-            // let xhr = new XMLHttpRequest();
-            // xhr.open('GET', 'search.do', true);
-            //
-            // xhr.onload = function () {
-            //     if (this.status === 200) {
-            //         // document.getElementById('searchForm').submit();
-            //         // readers = JSON.parse(this.responseText);
-            //         // console.log(readers[1].name);
-            //         console.log(true);
-            //     }
-            // }
-            //
-            // xhr.send();
-            document.getElementById('searchForm').submit();
-        } else {
-            alert("AT LEAST ONE FIELD SHOULD BE FILLED");
-        }
-    }
-
-    let searchButt = document.getElementById('searchButt');
-    searchButt.addEventListener('click', search);
-</script>
+<%--<script type="application/javascript">--%>
+<%--    --%>
+<%--</script>--%>
 
 </body>
 </html>

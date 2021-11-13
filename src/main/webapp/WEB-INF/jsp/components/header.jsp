@@ -28,11 +28,11 @@
 
             <div class="collapse navbar-collapse ml-auto" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
-                    <li class="nav-item active">
+                    <li class="nav-item" id="homeLink">
                         <a class="nav-link" href="${pageContext.request.contextPath}/home.do">Home<span class="sr-only"></span></a>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" id="searchLink">
                         <a class="nav-link" href="${pageContext.request.contextPath}/search_page.do">Search</a>
                     </li>
 

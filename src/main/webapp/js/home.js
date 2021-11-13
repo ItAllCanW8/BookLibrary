@@ -1,3 +1,5 @@
+document.getElementById('homeLink').classList.add('active');
+
 function deleteCheckedBooks(e) {
     e.preventDefault();
 
