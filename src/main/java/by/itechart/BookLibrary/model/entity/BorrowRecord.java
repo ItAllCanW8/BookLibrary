@@ -10,23 +10,27 @@ public class BorrowRecord implements Serializable {
     private String returnDate;
     private String status;
     private String comment;
-    private short bookIdFk;
-    private String readerEmail;
-    private String readerName;
+    private Book book;
+    private Reader reader;
 
     public BorrowRecord(){}
 
-    public BorrowRecord(short id, String borrowDate, String dueDate, String returnDate,
-                        String status, String comment, String readerEmail, String readerName, short bookId) {
+    public BorrowRecord(short id, String borrowDate, String dueDate, String returnDate, String status, String comment,
+                        Book book,  Reader reader) {
         this.id = id;
         this.borrowDate = borrowDate;
         this.dueDate = dueDate;
         this.returnDate = returnDate;
         this.status = status;
         this.comment = comment;
-        this.readerEmail = readerEmail;
-        this.readerName = readerName;
-        this.bookIdFk = bookId;
+        this.book = book;
+        this.reader = reader;
+    }
+
+    public BorrowRecord(String daysRemain, Book book, Reader reader){
+        this.dueDate = daysRemain;
+        this.book = book;
+        this.reader = reader;
     }
 
     public short getId() {
@@ -77,28 +81,20 @@ public class BorrowRecord implements Serializable {
         this.comment = comment;
     }
 
-    public short getBookIdFk() {
-        return bookIdFk;
+    public Book getBook() {
+        return book;
     }
 
-    public void setBookIdFk(short bookIdFk) {
-        this.bookIdFk = bookIdFk;
+    public void setBook(Book book) {
+        this.book = book;
     }
 
-    public String getReaderEmail() {
-        return readerEmail;
+    public Reader getReader() {
+        return reader;
     }
 
-    public void setReaderEmail(String readerEmail) {
-        this.readerEmail = readerEmail;
-    }
-
-    public String getReaderName() {
-        return readerName;
-    }
-
-    public void setReaderName(String readerName) {
-        this.readerName = readerName;
+    public void setReader(Reader reader) {
+        this.reader = reader;
     }
 
     @Override
@@ -108,26 +104,24 @@ public class BorrowRecord implements Serializable {
 
         BorrowRecord that = (BorrowRecord) o;
 
-        if (bookIdFk != that.bookIdFk) return false;
-        if (!borrowDate.equals(that.borrowDate)) return false;
+        if (!Objects.equals(borrowDate, that.borrowDate)) return false;
         if (!dueDate.equals(that.dueDate)) return false;
         if (!Objects.equals(returnDate, that.returnDate)) return false;
         if (!Objects.equals(status, that.status)) return false;
         if (!Objects.equals(comment, that.comment)) return false;
-        if (!readerEmail.equals(that.readerEmail)) return false;
-        return readerName.equals(that.readerName);
+        if (!book.equals(that.book)) return false;
+        return reader.equals(that.reader);
     }
 
     @Override
     public int hashCode() {
-        int result = borrowDate.hashCode();
+        int result = borrowDate != null ? borrowDate.hashCode() : 0;
         result = 31 * result + dueDate.hashCode();
         result = 31 * result + (returnDate != null ? returnDate.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (comment != null ? comment.hashCode() : 0);
-        result = 31 * result + (int) bookIdFk;
-        result = 31 * result + readerEmail.hashCode();
-        result = 31 * result + readerName.hashCode();
+        result = 31 * result + book.hashCode();
+        result = 31 * result + reader.hashCode();
         return result;
     }
 
@@ -135,14 +129,13 @@ public class BorrowRecord implements Serializable {
     public String toString() {
         return "BorrowRecord{" +
                 "id=" + id +
-                ", borrowDate=" + borrowDate +
-                ", dueDate=" + dueDate +
-                ", returnDate=" + returnDate +
+                ", borrowDate='" + borrowDate + '\'' +
+                ", dueDate='" + dueDate + '\'' +
+                ", returnDate='" + returnDate + '\'' +
                 ", status='" + status + '\'' +
                 ", comment='" + comment + '\'' +
-                ", bookIdFk=" + bookIdFk +
-                ", readerEmail='" + readerEmail + '\'' +
-                ", readerName='" + readerName + '\'' +
+                ", book=" + book +
+                ", reader=" + reader +
                 '}';
     }
 }

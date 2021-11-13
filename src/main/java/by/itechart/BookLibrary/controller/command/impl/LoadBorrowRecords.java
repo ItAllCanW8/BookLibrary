@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 
 public class LoadBorrowRecords implements Command {
@@ -34,6 +35,8 @@ public class LoadBorrowRecords implements Command {
                 PrintWriter writer = resp.getWriter();
 
                 writer.write(g.toJson(borrowRecords));
+//                System.out.println(borrowRecords);
+                System.out.println(g.toJson(borrowRecords));
                 writer.close();
 //                req.setAttribute(RequestParameter.READERS, g.toJson(readers));
             } else {

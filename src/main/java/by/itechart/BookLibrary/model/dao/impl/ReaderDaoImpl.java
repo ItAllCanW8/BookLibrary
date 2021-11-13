@@ -53,7 +53,7 @@ public class ReaderDaoImpl implements ReaderDao {
             ResultSet rs = statement.executeQuery(SELECT_READERS);
 
             while (rs.next()) {
-                Reader reader = createReaderFromRS(rs, false);
+                Reader reader = createReaderFromRS(rs);
                 readers.add(reader);
             }
 
@@ -64,11 +64,9 @@ public class ReaderDaoImpl implements ReaderDao {
         return readers;
     }
 
-    private Reader createReaderFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
-        Reader reader = new Reader(
-                rs.getString(readerNameCol),
-                rs.getString(readerEmailCol));
-
-        return reader;
+    private Reader createReaderFromRS(ResultSet rs) throws SQLException {
+        return new Reader(
+                rs.getString(readerEmailCol),
+                rs.getString(readerNameCol));
     }
 }

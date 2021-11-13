@@ -44,6 +44,15 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
     }
 
     @Override
+    public List<BorrowRecord> loadDataForNotifications() {
+        try{
+            return borrowRecordDao.loadDataForNotifications();
+        } catch (DaoException e){
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
     public Optional<String> findAvailabilityDate(short bookId) {
         try{
             return borrowRecordDao.findAvailabilityDate(bookId);

@@ -1,7 +1,6 @@
 package by.itechart.BookLibrary.model.entity;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 public class Reader implements Serializable {
     private short id;
@@ -10,9 +9,9 @@ public class Reader implements Serializable {
 
     public Reader(){}
 
-    public Reader(String name, String email) {
-        this.name = name;
+    public Reader(String email, String name) {
         this.email = email;
+        this.name = name;
     }
 
     public short getId() {

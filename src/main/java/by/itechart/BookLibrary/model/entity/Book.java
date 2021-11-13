@@ -1,6 +1,7 @@
 package by.itechart.BookLibrary.model.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Set;
 
 public class Book implements Serializable {
@@ -21,6 +22,8 @@ public class Book implements Serializable {
     public Book(){}
 
     public Book(short id){this.id = id;}
+
+    public Book(String title){this.title = title;}
 
     public Book(short id, String cover, String title, String publisher, String publishDate, short pageCount, String isbn,
                 String description, short totalAmount, short remainingAmount, String status) {
@@ -189,18 +192,32 @@ public class Book implements Serializable {
         Book book = (Book) o;
 
         if (pageCount != book.pageCount) return false;
-        if (!title.equals(book.title)) return false;
-        if (!authors.equals(book.authors)) return false;
-        if (!publisher.equals(book.publisher)) return false;
-        if (!publishDate.equals(book.publishDate)) return false;
-        if (!genres.equals(book.genres)) return false;
-        if (!isbn.equals(book.isbn)) return false;
-        return description != null ? description.equals(book.description) : book.description == null;
+        if (totalAmount != book.totalAmount) return false;
+        if (remainingAmount != book.remainingAmount) return false;
+        if (!Objects.equals(title, book.title)) return false;
+        if (!Objects.equals(authors, book.authors)) return false;
+        if (!Objects.equals(publisher, book.publisher)) return false;
+        if (!Objects.equals(publishDate, book.publishDate)) return false;
+        if (!Objects.equals(genres, book.genres)) return false;
+        if (!Objects.equals(isbn, book.isbn)) return false;
+        if (!Objects.equals(description, book.description)) return false;
+        return Objects.equals(status, book.status);
     }
 
     @Override
     public int hashCode() {
-        return isbn.hashCode();
+        int result = title != null ? title.hashCode() : 0;
+        result = 31 * result + (authors != null ? authors.hashCode() : 0);
+        result = 31 * result + (publisher != null ? publisher.hashCode() : 0);
+        result = 31 * result + (publishDate != null ? publishDate.hashCode() : 0);
+        result = 31 * result + (genres != null ? genres.hashCode() : 0);
+        result = 31 * result + (int) pageCount;
+        result = 31 * result + (isbn != null ? isbn.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (int) totalAmount;
+        result = 31 * result + (int) remainingAmount;
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        return result;
     }
 
     @Override

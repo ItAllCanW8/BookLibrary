@@ -56,7 +56,7 @@ async function saveChangesToDB(e) {
             },
             body: JSON.stringify(Array.from(readersToInsert))
         })
-            .then(res => res.ok)
+            .then(res => res.status === 200)
             .then(res => {
                 if (res) {
                     successCounter++;
@@ -82,7 +82,7 @@ async function saveChangesToDB(e) {
             },
             body: JSON.stringify(Array.from(borrowRecsToInsert))
         })
-            .then(res => res.ok)
+            .then(res => res.status === 200)
             .then(res => {
                 if (res) {
                     successCounter++;
@@ -102,7 +102,7 @@ async function saveChangesToDB(e) {
             },
             body: JSON.stringify(Array.from(borrowRecsToUpd))
         })
-            .then(res => res.ok)
+            .then(res => res.status === 200)
             .then(res => {
                 if (res) {
                     successCounter++;
@@ -162,6 +162,7 @@ const loadBorrowRecs = async () => {
 
     if (res.status === 200) {
         borrowRecords = await res.json();
+        console.log(borrowRecords)
         initialBorRecLength = borrowRecords.length;
 
         if (remainingAmount < totalAmount) {
@@ -178,11 +179,11 @@ function editBorRec(e) {
     let newStatus = statusSelect.options[statusSelect.selectedIndex].text;
 
     for (let i = 0; i < borrowRecords.length; i++) {
-        if (borrowRecords[i].readerEmail === readerId.slice(0, -2)) {
+        if (borrowRecords[i].reader.email === readerId.slice(0, -2)) {
             let borrowRecord = borrowRecords[i];
             let oldStatus = borrowRecord.status;
             let oldComment = borrowRecord.comment;
-            let email = borrowRecord.readerEmail;
+            let email = borrowRecord.reader.email;
 
             let newComment = document.getElementById('commentInput').value;
 
@@ -201,7 +202,7 @@ function editBorRec(e) {
             if (oldStatus !== newStatus || oldComment !== newComment) {
                 let j = 0;
                 for (j; j < borrowRecsToUpd.length; j++) {
-                    if (borrowRecsToUpd[j].readerEmail === email) {
+                    if (borrowRecsToUpd[j].reader.email === email) {
                         let borRecToUpd = borrowRecsToUpd[j];
 
                         borRecToUpd.status = newStatus;
@@ -250,11 +251,11 @@ function createNameDiv(readerName, readerEmail) {
         document.getElementById('readerId').innerText = e.target.id;
 
         for (let i = 0; i < borrowRecords.length; i++) {
-            if (borrowRecords[i].readerEmail === e.target.id.slice(0, -2)) {
+            if (borrowRecords[i].reader.email === e.target.id.slice(0, -2)) {
                 let borrowRecord = borrowRecords[i];
 
-                document.getElementById('readerEmailEdit').value = borrowRecord.readerEmail;
-                document.getElementById('readerNameEdit').value = borrowRecord.readerName;
+                document.getElementById('readerEmailEdit').value = borrowRecord.reader.email;
+                document.getElementById('readerNameEdit').value = borrowRecord.reader.name;
                 document.getElementById('borrowDate').value = borrowRecord.borrowDate.slice(0, 10);
 
                 let dueDate = new Date(borrowRecord.dueDate.slice(0, 10));
@@ -307,11 +308,11 @@ function fillBorrowRecTable() {
         let row = table.insertRow(rowCount);
 
         let emailCell = row.insertCell(0);
-        let email = document.createTextNode(borrowRecords[i].readerEmail);
+        let email = document.createTextNode(borrowRecords[i].reader.email);
         emailCell.appendChild(email);
 
         let nameCell = row.insertCell(1);
-        nameCell.appendChild(createNameDiv(borrowRecords[i].readerName, borrowRecords[i].readerEmail));
+        nameCell.appendChild(createNameDiv(borrowRecords[i].reader.name, borrowRecords[i].reader.email));
 
         let borrowDateCell = row.insertCell(2);
         borrowDateCell.appendChild(document.createTextNode(new Date(borrowRecords[i].borrowDate).toLocaleDateString()));
@@ -321,7 +322,7 @@ function fillBorrowRecTable() {
 
         let returnDateCell = row.insertCell(4);
         let returnDateDiv = document.createElement("div");
-        returnDateDiv.id = borrowRecords[i].readerEmail + 'RD';
+        returnDateDiv.id = borrowRecords[i].reader.email + 'RD';
 
         if (typeof borrowRecords[i].returnDate !== 'undefined') {
             let returnDate = toISOLocal(new Date(borrowRecords[i].returnDate)).slice(0, 19).replace('T', ' ');
@@ -353,7 +354,6 @@ function emailInput(e) {
         if (matchingReaders.size !== 0) {
             showMatchingEmails(matchingReaders);
         } else {
-            // readersToInsert.push(readerEmailInput.value);
             isNewReaderPresent = true;
         }
     }
@@ -399,7 +399,7 @@ function addBorrowRec(e) {
 
     if (remainingAmount <= 0) {
         alert('SORRY, THERE IS NO MORE COPIES OF THIS BOOK REMAIN!');
-    } else if (!borrowRecords.some(e => e.readerEmail === readerEmailInput.value)) {
+    } else if (!borrowRecords.some(e => e.reader.email === readerEmailInput.value)) {
         let table = document.getElementById('borrowRecTable').getElementsByTagName('tbody')[0]
 
         let rowCount = table.rows.length;
@@ -436,9 +436,16 @@ function addBorrowRec(e) {
             id: borrowRecords.length + 1,
             borrowDate: borrowDate,
             dueDate: toISOLocal(date),
-            bookIdFk: bookId,
-            readerEmail: readerEmailInput.value,
-            readerName: readerNameInput.value
+            book: {
+                id: bookId
+            },
+            reader: {
+                email: readerEmailInput.value,
+                name: readerNameInput.value
+            }
+            // bookIdFk: bookId,
+            // readerEmail: readerEmailInput.value,
+            // readerName: readerNameInput.value
         }
 
         borrowRecords.push(borrowRec);

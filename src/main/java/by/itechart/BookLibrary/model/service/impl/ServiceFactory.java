@@ -7,11 +7,6 @@ import by.itechart.BookLibrary.model.service.ReaderService;
 public class ServiceFactory {
     private final BookService bookService = new BookServiceImpl();
     private final ReaderService readerService = new ReaderServiceImpl();
-
-    public BorrowRecordService getBorrowRecordService() {
-        return borrowRecordService;
-    }
-
     private final BorrowRecordService borrowRecordService = new BorrowRecordServiceImpl();
 
     private ServiceFactory() {
@@ -24,6 +19,8 @@ public class ServiceFactory {
     public static ServiceFactory getInstance() {
         return Holder.INSTANCE;
     }
+
+    public BorrowRecordService getBorrowRecordService() { return borrowRecordService; }
 
     public BookService getBookService() {
         return bookService;

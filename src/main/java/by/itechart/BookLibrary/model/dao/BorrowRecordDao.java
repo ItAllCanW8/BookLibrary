@@ -11,5 +11,6 @@ public interface BorrowRecordDao {
     boolean add(Connection connection, List<BorrowRecord> borrowRecords);
     boolean update(Connection connection, List<BorrowRecord> borrowRecords);
     List<BorrowRecord> loadBorrowRecords(short bookId);
+    List<BorrowRecord> loadDataForNotifications();
     Optional<String> findAvailabilityDate(short bookId);
 }
