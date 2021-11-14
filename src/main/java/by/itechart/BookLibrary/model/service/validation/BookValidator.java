@@ -11,12 +11,12 @@ import java.util.regex.Pattern;
 
 public class BookValidator {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final Pattern TITLE_PATTERN = Pattern.compile("[А-Яа-я\\w\\p{Blank}.,]{3,255}");
-    private static final Pattern AUTHORS_PATTERN = Pattern.compile("[А-Яа-яa-zA-Z.,\\p{Blank}]{3,255}");
-    private static final Pattern PUBLISHER_PATTERN = Pattern.compile("[А-Яа-я\\w\\p{Blank}.,]{3,45}");
-    private static final Pattern GENRES_PATTERN = Pattern.compile("[a-zA-Z.,\\p{Blank}]{3,255}");
+    private static final Pattern TITLE_PATTERN = Pattern.compile("[\\w\\p{javaWhitespace}.,]{3,255}");
+    private static final Pattern AUTHORS_PATTERN = Pattern.compile("([a-zA-Z.\\p{javaWhitespace}]{3,255}[,\\p{javaWhitespace}}]?)+");
+    private static final Pattern PUBLISHER_PATTERN = Pattern.compile("[А-Яа-я\\w\\p{javaWhitespace}.,]{3,45}");
+    private static final Pattern GENRES_PATTERN = Pattern.compile("([a-zA-Z.\\p{javaWhitespace}]{3,255}[,\\p{javaWhitespace}}]?)+");
     static final Pattern PAGE_COUNT_PATTERN = Pattern.compile("[\\d]{1,5}");
-    private static final Pattern ISBN_PATTERN = Pattern.compile("[\\d-]{13,45}");
+    private static final Pattern ISBN_PATTERN = Pattern.compile("^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("[А-Яа-я\\w\\s\\p{Punct}]{3,1000}");
     static final Pattern TOTAL_AMOUNT_PATTERN = Pattern.compile("[\\d]{1,5}");
 
@@ -76,9 +76,7 @@ public class BookValidator {
         return result;
     }
 
-
-
-    public static boolean isTitleValid(String title) {
+    private static boolean isTitleValid(String title) {
         boolean result = ValidationHelper.isFieldValid(title, TITLE_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "Book title isn't valid: " + title);
@@ -86,7 +84,7 @@ public class BookValidator {
         return result;
     }
 
-    public static boolean isAuthorsFieldValid(String authors) {
+    private static boolean isAuthorsFieldValid(String authors) {
         boolean result = ValidationHelper.isFieldValid(authors, AUTHORS_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "Author(-s) isn't valid: " + authors);
@@ -94,7 +92,7 @@ public class BookValidator {
         return result;
     }
 
-    public static boolean isPublisherValid(String publisher) {
+    private static boolean isPublisherValid(String publisher) {
         boolean result = ValidationHelper.isFieldValid(publisher, PUBLISHER_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "Publisher isn't valid: " + publisher);
@@ -102,7 +100,7 @@ public class BookValidator {
         return result;
     }
 
-    public static boolean isISBNValid(String isbn) {
+    private static boolean isISBNValid(String isbn) {
         boolean result = ValidationHelper.isFieldValid(isbn, ISBN_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "ISBN isn't valid: " + isbn);
@@ -110,7 +108,7 @@ public class BookValidator {
         return result;
     }
 
-    public static boolean isGenresFieldValid(String genre) {
+    private static boolean isGenresFieldValid(String genre) {
         boolean result = ValidationHelper.isFieldValid(genre, GENRES_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "Genre isn't valid: " + genre);
@@ -138,7 +136,7 @@ public class BookValidator {
         return result;
     }
 
-    public static boolean isDescriptionValid(String description) {
+    private static boolean isDescriptionValid(String description) {
         boolean result = ValidationHelper.isFieldValid(description, DESCRIPTION_PATTERN);
         if (!result) {
             LOGGER.log(Level.DEBUG, "Description isn't valid: " + description);

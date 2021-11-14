@@ -1,6 +1,6 @@
 package by.itechart.BookLibrary.exception;
 
-public class CommandException extends Exception{
+public class CommandException extends RuntimeException{
     public CommandException() {
         super();
     }

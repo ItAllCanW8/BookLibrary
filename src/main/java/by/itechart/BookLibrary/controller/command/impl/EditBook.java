@@ -16,13 +16,13 @@ import java.util.Map;
 
 public class EditBook implements Command {
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
 
         BookService service = ServiceFactory.getInstance().getBookService();
         CommandResult result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.REDIRECT);
         try {
-            if (!service.update(Short.parseShort(bookId), receiveBookFields(req))) {
+            if (!service.update(Short.parseShort(bookId), receiveBookFieldsFromReq(req, true))) {
                 result = new CommandResult(CommandUrl.BOOK_PAGE + bookId, CommandResult.Type.FORWARD);
             }
         } catch (ServiceException | NumberFormatException e) {
@@ -31,7 +31,7 @@ public class EditBook implements Command {
         return result;
     }
 
-    static Map<String, String> receiveBookFields(HttpServletRequest req) {
+    static Map<String, String> receiveBookFieldsFromReq(HttpServletRequest req, boolean isForUpdate) {
         String newTitle = req.getParameter(RequestParameter.BOOK_TITLE);
         String newAuthors = req.getParameter(RequestParameter.BOOK_AUTHORS);
         String newPublisher = req.getParameter(RequestParameter.BOOK_PUBLISHER);
@@ -52,6 +52,11 @@ public class EditBook implements Command {
         fields.put(RequestParameter.BOOK_ISBN, newIsbn);
         fields.put(RequestParameter.BOOK_TOTAL_AMOUNT, newTotalAmount);
         fields.put(RequestParameter.BOOK_DESCRIPTION, newDescription);
+
+        if(isForUpdate){
+            fields.put(RequestParameter.BOOK_STATUS, req.getParameter(RequestParameter.BOOK_STATUS));
+            fields.put(RequestParameter.BOOK_REMAINING_AMOUNT, req.getParameter(RequestParameter.BOOK_REMAINING_AMOUNT));
+        }
 
         return fields;
     }

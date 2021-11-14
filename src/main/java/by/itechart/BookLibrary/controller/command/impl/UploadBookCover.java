@@ -25,7 +25,7 @@ import java.util.UUID;
 @MultipartConfig(maxFileSize = 1024 * 1024 * 2)
 public class UploadBookCover implements Command {
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
         BookService service = ServiceFactory.getInstance().getBookService();
 

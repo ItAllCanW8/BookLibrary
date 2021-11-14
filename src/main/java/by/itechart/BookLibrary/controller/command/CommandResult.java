@@ -16,7 +16,8 @@ public class CommandResult {
 
     public enum Type {
         FORWARD,
-        REDIRECT
+        REDIRECT,
+        ASYNC
     }
     public CommandResult(String path, Type type) {
         this.path = path;
@@ -58,6 +59,9 @@ public class CommandResult {
             }
             case REDIRECT: {
                 response.sendRedirect(request.getContextPath() + this.providePath());
+                break;
+            }
+            case ASYNC:{
                 break;
             }
             default: {

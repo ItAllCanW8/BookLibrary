@@ -18,7 +18,7 @@ import java.io.IOException;
 public class LoadBookCover implements Command {
     private static final Logger LOGGER = LogManager.getLogger();
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String fileName = req.getParameter(RequestParameter.BOOK_COVER);
 
         if (fileName != null && !fileName.isEmpty()) {

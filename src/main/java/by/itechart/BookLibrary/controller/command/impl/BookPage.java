@@ -1,7 +1,5 @@
 package by.itechart.BookLibrary.controller.command.impl;
 
-import by.itechart.BookLibrary.controller.attribute.CommandUrl;
-import by.itechart.BookLibrary.controller.attribute.JspAttribute;
 import by.itechart.BookLibrary.controller.attribute.PagePath;
 import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.controller.command.Command;
@@ -19,21 +17,25 @@ import java.util.Optional;
 
 public class BookPage implements Command {
     @Override
-    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
+    public CommandResult execute(HttpServletRequest req, HttpServletResponse resp){
         String bookId = req.getParameter(RequestParameter.BOOK_ID);
-        BookService service = ServiceFactory.getInstance().getBookService();
 
         CommandResult result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
-        try {
-            Optional<Book> bookOptional = service.findById(Short.parseShort(bookId));
-            if (bookOptional.isPresent()) {
-                Book book = bookOptional.get();
-                req.setAttribute(RequestParameter.BOOK, book);
-                req.setAttribute(RequestParameter.CURRENT_DATE, LocalDate.now());
-                result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
+        req.setAttribute(RequestParameter.CURRENT_DATE, LocalDate.now());
+
+        if(bookId != null){
+            try {
+                BookService service = ServiceFactory.getInstance().getBookService();
+                Optional<Book> bookOptional = service.findById(Short.parseShort(bookId));
+
+                if (bookOptional.isPresent()) {
+                    Book book = bookOptional.get();
+                    req.setAttribute(RequestParameter.BOOK, book);
+                    result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
+                }
+            } catch (ServiceException | NumberFormatException e) {
+                throw new CommandException(e);
             }
-        } catch (ServiceException | NumberFormatException e) {
-            throw new CommandException(e);
         }
         return result;
     }

@@ -12,6 +12,9 @@ public enum CommandType {
     ADD_BOOK{{
         this.command = new AddBook();
     }},
+    DELETE_BOOKS{{
+        this.command = new DeleteBooks();
+    }},
     EDIT_BOOK{{
         this.command = new EditBook();
     }},
@@ -20,6 +23,30 @@ public enum CommandType {
     }},
     LOAD_BOOK_COVER {{
         this.command = new LoadBookCover();
+    }},
+    LOAD_READERS {{
+        this.command = new LoadReaders();
+    }},
+    SEARCH_PAGE {{
+        this.command = new SearchPage();
+    }},
+    SEARCH{{
+        this.command = new Search();
+    }},
+    LOAD_BORROW_RECORDS{{
+        this.command = new LoadBorrowRecords();
+    }},
+    ADD_BORROW_RECORDS{{
+        this.command = new AddBorrowRecords();
+    }},
+    UPDATE_BORROW_RECORDS{{
+        this.command = new UpdateBorrowRecords();
+    }},
+    LOAD_AVAILABILITY_DATE{{
+        this.command = new LoadAvailabilityDate();
+    }},
+    ADD_READERS{{
+        this.command = new AddReaders();
     }};
 
     Command command;
