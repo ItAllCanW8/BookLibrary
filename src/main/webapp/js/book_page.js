@@ -49,7 +49,7 @@ async function saveChangesToDB(e) {
     if (readersToInsert.length > 0) {
         counterExpectedVal++;
 
-        await fetch('add_readers.do', {
+        await fetch(`${contextPath}/add_readers.do`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ async function saveChangesToDB(e) {
             borrowRecsToInsert.push(borrowRecords[i]);
         }
 
-        await fetch('add_borrow_records.do', {
+        await fetch(`${contextPath}/add_borrow_records.do`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ async function saveChangesToDB(e) {
     if (borrowRecsToUpd.length > 0 && successCounter === counterExpectedVal) {
         counterExpectedVal++;
 
-        await fetch('update_borrow_records.do', {
+        await fetch(`${contextPath}/update_borrow_records.do`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ async function saveChangesToDB(e) {
         const bookEditForm = document.getElementById('editBookForm');
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", `edit_book.do?bookId=${bookId}`);
+        xhr.open("POST", `${contextPath}/edit_book.do?bookId=${bookId}`);
         xhr.onload = function (event) {
             if (event.target.status === 200 && successCounter === counterExpectedVal) {
                 // wait for user to press OK than reload page
@@ -149,7 +149,7 @@ async function saveChangesToDB(e) {
 
 const loadReaders = async () => {
     if (typeof readers === 'undefined') {
-        const res = await fetch('load_readers.do');
+        const res = await fetch(`${contextPath}/load_readers.do`);
 
         if (res.status === 200) {
             readers = await res.json();
@@ -158,11 +158,10 @@ const loadReaders = async () => {
 };
 
 const loadBorrowRecs = async () => {
-    const res = await fetch('load_borrow_records.do?bookId=' + bookId);
+    const res = await fetch(`${contextPath}/load_borrow_records.do?bookId=` + bookId);
 
     if (res.status === 200) {
         borrowRecords = await res.json();
-        console.log(borrowRecords)
         initialBorRecLength = borrowRecords.length;
 
         if (remainingAmount < totalAmount) {
@@ -379,7 +378,7 @@ function itemSelected(e) {
 }
 
 const loadAvailabilityDate = async () => {
-    const res = await fetch(`load_availability_date.do?bookId=${bookId}`);
+    const res = await fetch(`${contextPath}/load_availability_date.do?bookId=${bookId}`);
 
     if (res.status === 200) {
         const dateStr = await res.json();
@@ -465,7 +464,7 @@ function updateBookStatus() {
     } else {
         const options = {year: 'numeric', month: 'long', day: 'numeric'};
         const formattedAvailDate = new Date(bookAvailabilityDate).toLocaleDateString("en", options);
-        console.log(formattedAvailDate);
+
         bookStatus.innerText = `Unavailable (expected to become available on ${formattedAvailDate})`;
     }
 }

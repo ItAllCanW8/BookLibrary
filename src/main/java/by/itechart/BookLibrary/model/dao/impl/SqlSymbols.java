@@ -10,6 +10,9 @@ public class SqlSymbols {
     public static final String THEN = " THEN ";
     public static final String END = " END ";
     public static final String AND = " AND ";
+    public static final String WHERE = " WHERE ";
+    public static final String OR = " OR ";
+    public static final String PERCENT_WILDCARD = "%";
 
     private SqlSymbols(){}
 }

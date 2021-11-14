@@ -333,6 +333,7 @@
 
 
     <script type="application/javascript">
+        let contextPath = `${pageContext.request.contextPath}`;
         const bookId = `${book.id}`;
         let remainingAmount = ${book.remainingAmount};
         let totalAmount = ${book.totalAmount};

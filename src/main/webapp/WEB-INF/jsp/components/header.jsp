@@ -35,10 +35,6 @@
                     <li class="nav-item" id="searchLink">
                         <a class="nav-link" href="${pageContext.request.contextPath}/search_page.do">Search</a>
                     </li>
-
-                    <li class="nav-item"><a class="nav-link"
-                                            href="${pageContext.request.contextPath}/readers.do">Readers</a>
-                    </li>
                 </ul>
             </div>
         </nav>

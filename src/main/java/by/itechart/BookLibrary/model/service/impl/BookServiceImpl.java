@@ -204,7 +204,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> searchBooks(Map<String, String> searchFields) {
+    public Set<Book> searchBooks(Map<String, String> searchFields) {
         try{
             Set<String> authors = new HashSet<>();
             Set<String> genres = new HashSet<>();
@@ -216,17 +216,15 @@ public class BookServiceImpl implements BookService {
                 authors = Arrays.stream(authorsStr
                         .split(", "))
                         .collect(Collectors.toSet());
-                System.out.println(authors);
             }
             if(!genresStr.equals("")){
                 genres = Arrays.stream(genresStr
                         .split(", "))
                         .collect(Collectors.toSet());
-                System.out.println(genres);
             }
 
-            return bookDao.searchBooks(searchFields.get(RequestParameter.BOOK_TITLE),
-                    searchFields.get(RequestParameter.BOOK_DESCRIPTION), authors, genres);
+            return new HashSet<>(bookDao.searchBooks(searchFields.get(RequestParameter.BOOK_TITLE),
+                    searchFields.get(RequestParameter.BOOK_DESCRIPTION), authors, genres));
         } catch (DaoException e){
             throw new ServiceException(e);
         }

@@ -32,10 +32,7 @@ public class LoadReaders implements Command {
 
                 PrintWriter writer = resp.getWriter();
                 writer.write(g.toJson(readers));
-//                writer.write(readers.toString());
                 writer.close();
-
-//                req.setAttribute(RequestParameter.READERS, g.toJson(readers));
             } else {
                 resp.setStatus(204);
             }

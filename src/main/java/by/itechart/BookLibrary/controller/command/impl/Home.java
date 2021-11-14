@@ -25,7 +25,7 @@ public class Home implements Command {
                     Integer.parseInt(req.getParameter(RequestParameter.PAGE)) : 1;
 
             int recordsPerPage = req.getParameter(RequestParameter.RECORDS_PER_PAGE) != null ?
-                    Integer.parseInt(req.getParameter(RequestParameter.RECORDS_PER_PAGE)) : 5;
+                    Integer.parseInt(req.getParameter(RequestParameter.RECORDS_PER_PAGE)) : 10;
 
             Optional<String> filterModeOptional = req.getParameter(RequestParameter.RECORDS_PER_PAGE) != null ?
                     Optional.of(req.getParameter(RequestParameter.FILTER_MODE)) : Optional.empty();

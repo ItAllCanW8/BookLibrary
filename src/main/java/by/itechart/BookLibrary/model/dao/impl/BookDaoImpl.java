@@ -192,32 +192,8 @@ public class BookDaoImpl implements BookDao {
 
         try (Connection connection = DataSource.getConnection();
              Statement statement = connection.createStatement()) {
-            StringBuilder searchQueryBuilder = new StringBuilder(SEARCH_BOOKS);
 
-            if(!title.equals("")){
-                searchQueryBuilder.append(" WHERE title LIKE ").append(APOSTROPHE).append(title).append(APOSTROPHE)
-                        .append(WHITESPACE);
-            }
-            if(!description.equals("")){
-                searchQueryBuilder.append(" OR description LIKE ").append(APOSTROPHE).append(description)
-                        .append(APOSTROPHE).append(WHITESPACE);
-            }
-            if(authors.size() > 0){
-                for(String author : authors){
-                    searchQueryBuilder.append(" OR author LIKE ").append(APOSTROPHE).append(author).append(APOSTROPHE)
-                            .append(WHITESPACE);
-                }
-            }
-            if(genres.size() > 0){
-                for(String genre : genres){
-                    searchQueryBuilder.append(" OR genre LIKE ").append(APOSTROPHE).append(genre).append(APOSTROPHE)
-                            .append(WHITESPACE);
-                }
-            }
-
-            System.out.println(searchQueryBuilder.toString());
-
-            ResultSet rs = statement.executeQuery(searchQueryBuilder.toString());
+            ResultSet rs = statement.executeQuery(prepareSearchQuery(title, description, authors, genres));
             if (rs.isBeforeFirst()) {
                 StringBuilder loadBookAuthorsSB = new StringBuilder(LOAD_BOOK_AUTHORS);
 
@@ -315,7 +291,7 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public boolean selectOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, boolean isForGenres,
-                                     String query, short bookId) {
+                                       String query, short bookId) {
         try (PreparedStatement st = connection.prepareStatement(query)) {
             st.setShort(1, bookId);
             ResultSet rs = st.executeQuery();
@@ -327,7 +303,7 @@ public class BookDaoImpl implements BookDao {
                     oldBookFields.put(rs.getShort(authorIdCol), rs.getString(authorCol));
                 }
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             throw new DaoException("Error loading old book fields", e);
         }
         return true;
@@ -335,7 +311,7 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public void deleteOldBookFields(Connection connection, BidiMap<Short, String> oldBookFields, Set<String> newBookFields,
-                                     StringBuilder sb, short bookId) {
+                                    StringBuilder sb, short bookId) {
         Set<Short> fieldIdsToDelete = new HashSet<>();
 
         for (String field : oldBookFields.values()) {
@@ -360,7 +336,7 @@ public class BookDaoImpl implements BookDao {
             try (PreparedStatement deleteOldBookFieldsSt = connection.prepareStatement(sb.toString())) {
                 deleteOldBookFieldsSt.setShort(1, bookId);
                 deleteOldBookFieldsSt.executeUpdate();
-            } catch (SQLException e){
+            } catch (SQLException e) {
                 throw new DaoException("Error deleting old book fields", e);
             }
         }
@@ -466,10 +442,10 @@ public class BookDaoImpl implements BookDao {
             StringBuilder deleteBooksSb = new StringBuilder(DELETE);
 
             byte counter = (byte) bookIds.size();
-            for(Short bookId : bookIds){
+            for (Short bookId : bookIds) {
                 deleteBooksSb.append(bookId);
 
-                if(--counter != 0){
+                if (--counter != 0) {
                     deleteBooksSb.append(COMMA);
                 } else {
                     deleteBooksSb.append(RIGHT_PARENTHESIS);
@@ -495,6 +471,65 @@ public class BookDaoImpl implements BookDao {
         }
 
         return stringBuilder.toString();
+    }
+
+    private String prepareSearchQuery(String title, String description, Set<String> authors, Set<String> genres){
+        StringBuilder searchQueryBuilder = new StringBuilder(SEARCH_BOOKS);
+        boolean isWhereAppended = false;
+
+        if (!title.equals("")) {
+            searchQueryBuilder.append(" WHERE title LIKE ").append(APOSTROPHE).append(title).append(PERCENT_WILDCARD)
+                    .append(APOSTROPHE).append(WHITESPACE);
+
+            isWhereAppended = true;
+        }
+        if (!description.equals("")) {
+            if(!isWhereAppended){
+                searchQueryBuilder.append(WHERE);
+                isWhereAppended = true;
+            } else {
+                searchQueryBuilder.append(OR);
+            }
+
+            searchQueryBuilder.append("description LIKE ").append(APOSTROPHE).append(description).append(PERCENT_WILDCARD)
+                    .append(APOSTROPHE).append(WHITESPACE);
+        }
+        if (authors.size() > 0) {
+            if(!isWhereAppended){
+                searchQueryBuilder.append(WHERE);
+                isWhereAppended = true;
+            } else {
+                searchQueryBuilder.append(OR);
+            }
+
+            byte counter = 0;
+            for (String author : authors) {
+                if(counter++ > 0){
+                    searchQueryBuilder.append(OR);
+                }
+                searchQueryBuilder.append("author LIKE ").append(APOSTROPHE).append(author).append(PERCENT_WILDCARD)
+                        .append(APOSTROPHE).append(WHITESPACE);
+            }
+        }
+        if (genres.size() > 0) {
+            if(!isWhereAppended){
+                searchQueryBuilder.append(WHERE);
+                isWhereAppended = true;
+            } else {
+                searchQueryBuilder.append(OR);
+            }
+
+            byte counter = 0;
+            for (String genre : genres) {
+                if(counter++ > 0){
+                    searchQueryBuilder.append(OR);
+                }
+                searchQueryBuilder.append("genre LIKE ").append(APOSTROPHE).append(genre).append(PERCENT_WILDCARD)
+                        .append(APOSTROPHE).append(WHITESPACE);
+            }
+        }
+
+        return searchQueryBuilder.toString();
     }
 
     private Book createBookFromRS(ResultSet rs, boolean allFieldsPresented) throws SQLException {
