@@ -1,6 +1,7 @@
 package by.itechart.BookLibrary.controller.command.impl;
 
 import by.itechart.BookLibrary.controller.attribute.CommandUrl;
+import by.itechart.BookLibrary.controller.attribute.PagePath;
 import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.controller.command.Command;
 import by.itechart.BookLibrary.controller.command.CommandResult;
@@ -32,7 +33,7 @@ public class AddBook implements Command {
                 req.setAttribute(RequestParameter.BOOK_TOTAL_AMOUNT, fields.get(RequestParameter.BOOK_TOTAL_AMOUNT));
                 req.setAttribute(RequestParameter.BOOK_DESCRIPTION, fields.get(RequestParameter.BOOK_DESCRIPTION));
 
-                result = new CommandResult(CommandUrl.HOME, CommandResult.Type.FORWARD);
+                result = new CommandResult(PagePath.BOOK_PAGE, CommandResult.Type.FORWARD);
             }
         } catch (ServiceException e) {
             throw new CommandException(e);

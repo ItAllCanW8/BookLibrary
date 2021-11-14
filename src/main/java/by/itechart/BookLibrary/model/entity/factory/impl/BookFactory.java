@@ -24,8 +24,6 @@ public class BookFactory implements EntityFactory<Book> {
 
     @Override
     public Optional<Book> create(Map<String, String> fields) {
-        Optional<Book> result = Optional.empty();
-//        if (BookValidator.isBookFormValid(fields)) {
         String title = fields.get(RequestParameter.BOOK_TITLE);
 
         String authorsStr = fields.get(RequestParameter.BOOK_AUTHORS);
@@ -43,9 +41,7 @@ public class BookFactory implements EntityFactory<Book> {
         String description = fields.get(RequestParameter.BOOK_DESCRIPTION);
         String status = "Available (" + totalAmount + " out of " + totalAmount + ")";
 
-        result = Optional.of(new Book(DEFAULT_COVER, title, authors, publisher, publishDate, genres, pageCount, isbn,
-                description, totalAmount, totalAmount, status));
-//        }
-        return result;
+        return Optional.of(new Book(DEFAULT_COVER, title, authors, publisher, publishDate, genres,
+                pageCount, isbn, description, totalAmount, totalAmount, status));
     }
 }

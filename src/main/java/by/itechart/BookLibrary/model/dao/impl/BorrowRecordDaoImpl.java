@@ -200,8 +200,6 @@ public class BorrowRecordDaoImpl implements BorrowRecordDao {
 
     private BorrowRecord createBorrowRecFromRS(ResultSet rs, short bookId) throws SQLException {
         short borrowRecId = rs.getShort(borrowRecIdCol);
-//        LocalDateTime borrowDate = LocalDateTime.parse(rs.getString("borrow_date"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//        LocalDateTime dueDate = LocalDateTime.parse(rs.getString("due_date"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String borrowDate = rs.getString(borrowDateCol);
         String dueDate = rs.getString(dueDateCol);
         String returnDate = rs.getString(returnDateCol);

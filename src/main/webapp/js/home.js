@@ -22,3 +22,6 @@ function deleteCheckedBooks(e) {
 
 const deleteBooksButt = document.getElementById('deleteBooksButt');
 deleteBooksButt.addEventListener('click', deleteCheckedBooks);
+
+const scrollingElement = (document.scrollingElement || document.body);
+scrollingElement.scrollTop = scrollingElement.scrollHeight;

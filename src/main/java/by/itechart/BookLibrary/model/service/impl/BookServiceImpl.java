@@ -33,7 +33,7 @@ public class BookServiceImpl implements BookService {
     public boolean add(Map<String, String> fields) {
         boolean result = false;
 
-//        if (BookValidator.isBookFormValid(fields)) {
+        if (BookValidator.isBookFormValid(fields)) {
             Optional<Book> bookOptional = bookFactory.create(fields);
 
             if (bookOptional.isPresent()) {
@@ -57,49 +57,50 @@ public class BookServiceImpl implements BookService {
                     }
                 }
             }
-//        }
+        }
         return result;
     }
 
     @Override
     public boolean update(short bookId, Map<String, String> newFields) {
-//            if (BookValidator.isBookFormValid(newFields)) {
         boolean result = false;
-        Optional<Book> bookOptional = bookDao.findById(bookId);
 
-        if (bookOptional.isPresent()) {
-            Book book = bookOptional.get();
+        if (BookValidator.isBookFormValid(newFields)) {
+            Optional<Book> bookOptional = bookDao.findById(bookId);
 
-            if (book.getTitle().equals(newFields.get(RequestParameter.BOOK_TITLE)) ||
-                    bookDao.isTitleAvailable(newFields.get(RequestParameter.BOOK_TITLE))) {
+            if (bookOptional.isPresent()) {
+                Book book = bookOptional.get();
 
-                updateBookInfo(book, newFields);
-                try (Connection connection = DataSource.getConnection()) {
-                    connection.setAutoCommit(false);
+                if (book.getTitle().equals(newFields.get(RequestParameter.BOOK_TITLE)) ||
+                        bookDao.isTitleAvailable(newFields.get(RequestParameter.BOOK_TITLE))) {
 
-                    if (bookDao.update(connection, book)
-                            && updateFields(connection, book, true)
-                            && updateFields(connection, book, false)) {
-                        connection.commit();
-                        result = true;
-                    } else {
-                        connection.rollback();
+                    updateBookInfo(book, newFields);
+                    try (Connection connection = DataSource.getConnection()) {
+                        connection.setAutoCommit(false);
+
+                        if (bookDao.update(connection, book)
+                                && updateFields(connection, book, true)
+                                && updateFields(connection, book, false)) {
+                            connection.commit();
+                            result = true;
+                        } else {
+                            connection.rollback();
+                        }
+                    } catch (DaoException | SQLException e) {
+                        throw new ServiceException(e);
                     }
-                } catch (DaoException | SQLException e) {
-                    throw new ServiceException(e);
                 }
             }
         }
-//    }
 
         return result;
     }
 
     @Override
     public boolean delete(Set<Short> bookIds) {
-        try(Connection connection = DataSource.getConnection()){
+        try (Connection connection = DataSource.getConnection()) {
             return bookDao.delete(connection, bookIds);
-        } catch (DaoException | SQLException e){
+        } catch (DaoException | SQLException e) {
             throw new ServiceException(e);
         }
     }
@@ -205,19 +206,19 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Set<Book> searchBooks(Map<String, String> searchFields) {
-        try{
+        try {
             Set<String> authors = new HashSet<>();
             Set<String> genres = new HashSet<>();
 
             String authorsStr = searchFields.get(RequestParameter.BOOK_AUTHORS);
             String genresStr = searchFields.get(RequestParameter.BOOK_GENRES);
 
-            if(!authorsStr.equals("")){
+            if (!authorsStr.equals("")) {
                 authors = Arrays.stream(authorsStr
                         .split(", "))
                         .collect(Collectors.toSet());
             }
-            if(!genresStr.equals("")){
+            if (!genresStr.equals("")) {
                 genres = Arrays.stream(genresStr
                         .split(", "))
                         .collect(Collectors.toSet());
@@ -225,7 +226,7 @@ public class BookServiceImpl implements BookService {
 
             return new HashSet<>(bookDao.searchBooks(searchFields.get(RequestParameter.BOOK_TITLE),
                     searchFields.get(RequestParameter.BOOK_DESCRIPTION), authors, genres));
-        } catch (DaoException e){
+        } catch (DaoException e) {
             throw new ServiceException(e);
         }
     }

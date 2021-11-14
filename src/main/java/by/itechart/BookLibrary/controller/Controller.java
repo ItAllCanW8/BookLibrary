@@ -38,16 +38,16 @@ public class Controller extends HttpServlet {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @Override
-    public void init() throws ServletException {
-//        try{
-//            List<BorrowRecord> borrowRecords = ServiceFactory.getInstance().getBorrowRecordService().loadDataForNotifications();
-//
-//            if(borrowRecords.size() > 0){
-//                new MailServiceImpl().sendNotificationsToReaders(borrowRecords);
-//            }
-//        } catch (ServiceException | IOException | TemplateException e){
-//            throw new ServletException(e);
-//        }
+    public void init() {
+        try{
+            List<BorrowRecord> borrowRecords = ServiceFactory.getInstance().getBorrowRecordService().loadDataForNotifications();
+
+            if(borrowRecords.size() > 0){
+                new MailServiceImpl().sendNotificationsToReaders(borrowRecords);
+            }
+        } catch (ServiceException | IOException | TemplateException e){
+            LOGGER.log(Level.ERROR, "Error sending email notifications: " + e);
+        }
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

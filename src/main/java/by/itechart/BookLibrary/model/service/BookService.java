@@ -13,7 +13,6 @@ public interface BookService {
     boolean delete(Set<Short> bookIds);
     List<Book> loadBooks(int offset, int recordsPerPage, Optional<String> filterMode);
     Set<Book> searchBooks(Map<String, String> searchFields);
-//    Set<Book> searchBooks(Map<String, String> searchFields, int offset, int recordsPerPage);
     int getBookCount();
     Optional<Book> findById(short bookId);
     boolean changeBookCover(short bookId, String path);

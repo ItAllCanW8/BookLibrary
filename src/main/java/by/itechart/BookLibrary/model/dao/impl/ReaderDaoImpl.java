@@ -19,6 +19,7 @@ import static by.itechart.BookLibrary.model.dao.impl.SqlSymbols.COMMA;
 public class ReaderDaoImpl implements ReaderDao {
     public static final String SELECT_READERS = "SELECT email, name FROM readers;";
     public static final String INSERT = "INSERT INTO readers(email, name) VALUES ";
+    private static final String CHECK_EMAILS_FOR_EXISTENCE = " SELECT email FROM readers WHERE ";
 
     private static final String readerNameCol = "name";
     private static final String readerEmailCol = "email";
@@ -41,6 +42,28 @@ public class ReaderDaoImpl implements ReaderDao {
             return statement.executeUpdate(insertQuerySB.toString()) > 0;
         } catch (SQLException e) {
             throw new DaoException(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean areEmailsAvailable(List<String> emails) {
+        try (Connection connection = DataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+
+            StringBuilder querySB = new StringBuilder(CHECK_EMAILS_FOR_EXISTENCE);
+
+            byte counter = (byte) emails.size();
+            for (String email : emails) {
+                querySB.append("email").append(EQUALS).append(APOSTROPHE).append(email).append(APOSTROPHE);
+
+                if (--counter != 0) {
+                    querySB.append(OR);
+                }
+            }
+
+            return !statement.executeQuery(querySB.toString()).next();
+        } catch (SQLException e) {
+            throw new DaoException("Error checking emails for availability.", e);
         }
     }
 

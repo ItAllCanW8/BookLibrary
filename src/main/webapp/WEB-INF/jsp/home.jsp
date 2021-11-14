@@ -92,10 +92,10 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recordsPerPage">
                             <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=1&filter=${filterMode}">10</a>
+                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=10&filter=${filterMode}">10</a>
                             </li>
                             <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=2&filter=${filterMode}">20</a>
+                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=20&filter=${filterMode}">20</a>
                             </li>
                         </ul>
                     </div>

@@ -62,7 +62,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                    <%--                                           pattern="[А-Яа-я\w\p{Blank}.,]{3,255}"--%>
+                                           pattern="[\w\p{javaWhitespace}.,]{3,255}"
                                            value="${book.title}"/>
                                 </h3>
 
@@ -74,7 +74,7 @@
                                                class="form-control field"
                                                placeholder="3 - 45 characters"
                                                required
-                                        <%--                                               pattern="[А-Яа-я\w\p{Blank}.,]{3,45}"--%>
+                                               pattern="[А-Яа-я\w\p{javaWhitespace}.,]{3,45}"
                                                value="${book.publisher}"/>
                                     </div>
                                 </h5>
@@ -97,7 +97,7 @@
                                                class="form-control field"
                                                placeholder="0 - 32767"
                                                required
-                                        <%--                                               pattern="[\d]{1,5}"--%>
+                                               pattern="[\d]{1,5}"
                                                value="${book.pageCount}"/>
                                     </div>
                                 </h5>
@@ -109,7 +109,7 @@
                                                class="form-control field"
                                                placeholder="978-3-16-148410-0"
                                                required
-                                        <%--                                               pattern="[\d-]{13,45}"--%>
+                                               pattern="^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$"
                                                value="${book.isbn}"/>
                                     </div>
                                 </h5>
@@ -121,7 +121,7 @@
                                                class="form-control field"
                                                placeholder="0 - 32767"
                                                required
-                                        <%--                                               pattern="[\d]{1,5}"--%>
+                                               pattern="[\d]{1,5}"
                                                value="${book.totalAmount}"/>
                                     </div>
                                 </h5>
@@ -134,7 +134,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                    <%--                                           pattern="[А-Яа-яa-zA-Z.,\p{Blank}]{3,500}"--%>
+                                           pattern="([a-zA-Z.\p{javaWhitespace}]{3,255}[,\p{javaWhitespace}}]?)+"
                                            value="${book.authors}"/>
                                 </div>
                             </h4>
@@ -146,7 +146,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                    <%--                                           pattern="[a-zA-Z.,\p{Blank}]{3,500}"--%>
+                                           pattern="([a-zA-Z.\p{javaWhitespace}]{3,255}[,\p{javaWhitespace}}]?)+"
                                            value="${book.genres}"/>
                                 </div>
                             </h4>
@@ -182,7 +182,6 @@
 </section>
 
 <c:if test="${book.id != null}">
-
     <section class="course_section layout_padding-bottom">
         <div class="container">
             <div class="heading_container">
@@ -229,6 +228,7 @@
                             <input type="search" class="form-control field" id="readerEmailInput"
                                    name="readerEmail"
                                    placeholder="start to input..."
+                                   pattern="((\w)|(\w[.-]\w))+@((\w)|(\w[.-]\w))+.[a-zA-Zа-яА-Я]{2,4}"
                                    required>
                             <ul id="matchList" class="autocom-box"></ul>
                         </div>
@@ -237,7 +237,8 @@
                             <label for="readerName">Reader name</label>
                         </div>
                         <div class="form-group mt-1">
-                            <input type="text" class="form-control field" id="readerName" name="readerName">
+                            <input type="text" class="form-control field" id="readerName" name="readerName"
+                                   pattern="[a-zA-Z]{2,255}">
                         </div>
 
                         <div class="mt-3">
@@ -257,7 +258,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="closeAddModalButt" data-bs-dismiss="modal">Discard
+                        <button type="button" class="btn btn-secondary" id="closeAddModalButt" data-bs-dismiss="modal">
+                            Discard
                         </button>
                         <button type="button" class="btn btn-primary" id="saveBorrowRecButt">Save</button>
                     </div>
@@ -323,7 +325,9 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="closeEditModalButt" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" id="closeEditModalButt" data-bs-dismiss="modal">
+                            Close
+                        </button>
                         <button type="button" class="btn btn-primary" id="editBorRecButt">Save</button>
                     </div>
                 </div>

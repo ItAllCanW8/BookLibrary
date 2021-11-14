@@ -10,6 +10,10 @@ let isNewReaderPresent = false;
 
 let bookAvailabilityDate;
 
+const readerEmailPattern = /((\w)|(\w[.-]\w))+@((\w)|(\w[.-]\w))+.[a-zA-Zа-яА-Я]{2,4}/;
+const readerNamePattern = /[a-zA-Z]{2,255}/;
+const commentPattern = /[А-Яа-я\w\s.,#!$%^&*;:{}=\-_`~()]{3,255}/;
+
 let saveToDBButt = document.getElementById('saveToDBButt');
 saveToDBButt.addEventListener('click', saveChangesToDB);
 
@@ -137,7 +141,7 @@ async function saveChangesToDB(e) {
     }
 
     if(errors.length > 0){
-        let msg;
+        let msg = '';
 
         for (const err of errors) {
             msg += `!!! ${err}\n`;
@@ -172,65 +176,69 @@ const loadBorrowRecs = async () => {
     }
 };
 
-function editBorRec(e) {
-    let readerId = document.getElementById('readerId').innerText;
-    let statusSelect = document.getElementById('statusSelect');
-    let newStatus = statusSelect.options[statusSelect.selectedIndex].text;
+function editBorRec() {
+    let newComment = document.getElementById('commentInput').value;
 
-    for (let i = 0; i < borrowRecords.length; i++) {
-        if (borrowRecords[i].reader.email === readerId.slice(0, -2)) {
-            let borrowRecord = borrowRecords[i];
-            let oldStatus = borrowRecord.status;
-            let oldComment = borrowRecord.comment;
-            let email = borrowRecord.reader.email;
+    if(newComment === "" || commentPattern.test(newComment)){
+        let readerId = document.getElementById('readerId').innerText;
+        let statusSelect = document.getElementById('statusSelect');
+        let newStatus = statusSelect.options[statusSelect.selectedIndex].text;
 
-            let newComment = document.getElementById('commentInput').value;
+        for (let i = 0; i < borrowRecords.length; i++) {
+            if (borrowRecords[i].reader.email === readerId.slice(0, -2)) {
+                let borrowRecord = borrowRecords[i];
+                let oldStatus = borrowRecord.status;
+                let oldComment = borrowRecord.comment;
+                let email = borrowRecord.reader.email;
 
-            if (oldStatus !== newStatus) {
-                borrowRecord.status = newStatus;
+                if (oldStatus !== newStatus) {
+                    borrowRecord.status = newStatus;
 
-                let returnDate = toISOLocal(new Date()).slice(0, 19).replace('T', ' ');
-                borrowRecord.returnDate = returnDate;
-                document.getElementById(email + 'RD').innerText = returnDate;
-            }
+                    let returnDate = toISOLocal(new Date()).slice(0, 19).replace('T', ' ');
+                    borrowRecord.returnDate = returnDate;
+                    document.getElementById(email + 'RD').innerText = returnDate;
+                }
 
-            if (oldComment !== newComment) {
-                borrowRecord.comment = newComment;
-            }
+                if (oldComment !== newComment) {
+                    borrowRecord.comment = newComment;
+                }
 
-            if (oldStatus !== newStatus || oldComment !== newComment) {
-                let j = 0;
-                for (j; j < borrowRecsToUpd.length; j++) {
-                    if (borrowRecsToUpd[j].reader.email === email) {
-                        let borRecToUpd = borrowRecsToUpd[j];
+                if (oldStatus !== newStatus || oldComment !== newComment) {
+                    let j = 0;
+                    for (j; j < borrowRecsToUpd.length; j++) {
+                        if (borrowRecsToUpd[j].reader.email === email) {
+                            let borRecToUpd = borrowRecsToUpd[j];
 
-                        borRecToUpd.status = newStatus;
-                        borRecToUpd.returnDate = borrowRecord.returnDate;
-                        borRecToUpd.comment = newComment;
+                            borRecToUpd.status = newStatus;
+                            borRecToUpd.returnDate = borrowRecord.returnDate;
+                            borRecToUpd.comment = newComment;
 
-                        break;
+                            break;
+                        }
+                    }
+
+                    if (j === borrowRecsToUpd.length) {
+                        borrowRecsToUpd.push(borrowRecord);
                     }
                 }
 
-                if (j === borrowRecsToUpd.length) {
-                    borrowRecsToUpd.push(borrowRecord);
+                if (newStatus === 'lost' || newStatus === 'returned and damaged') {
+                    totalAmount--;
+                    inputBookTotalAmount.value = totalAmount;
+                } else {
+                    remainingAmount++;
                 }
+
+                updateBookStatus();
+
+                break;
             }
-
-            if (newStatus === 'lost' || newStatus === 'returned and damaged') {
-                totalAmount--;
-                inputBookTotalAmount.value = totalAmount;
-            } else {
-                remainingAmount++;
-            }
-
-            updateBookStatus();
-
-            break;
         }
-    }
 
-    document.getElementById('closeEditModalButt').click();
+        document.getElementById('closeEditModalButt').click();
+    } else {
+        alert('PLEASE INPUT VALID COMMENT!');
+    }
 }
 
 function monthDiff(dateFrom, dateTo) {
@@ -336,7 +344,7 @@ function fillBorrowRecTable() {
     }
 }
 
-function emailInput(e) {
+function emailInput() {
     matchList.innerHTML = '';
     readerNameInput.value = '';
 
@@ -387,15 +395,19 @@ const loadAvailabilityDate = async () => {
     }
 };
 
-function addBorrowRec(e) {
+function addBorrowRec() {
     if (isNewReaderPresent) {
-        //TODO && readerEmailInput.value is valid
-        let newReader = {
-            email: readerEmailInput.value,
-            name: readerNameInput.value
-        }
+        if(readerEmailPattern.test(readerEmailInput.value) && readerNamePattern.test(readerNameInput.value)){
+            let newReader = {
+                email: readerEmailInput.value,
+                name: readerNameInput.value
+            }
 
-        readersToInsert.push(newReader);
+            readersToInsert.push(newReader);
+        } else {
+            alert('PLEASE INPUT VALID READER FIELDS!');
+            return;
+        }
     }
 
     if (remainingAmount <= 0) {

@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ReaderDao {
     boolean add(Connection connection, List<Reader> readers);
+    boolean areEmailsAvailable(List<String> emails);
     List<Reader> loadReaders();
 }

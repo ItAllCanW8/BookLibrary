@@ -6,7 +6,7 @@ const loadBooks = async (bookTitle, bookGenres, bookAuthors, bookDesc) => {
     const res = await fetch(
         `${contextPath}/search.do?bookTitle=${bookTitle}&bookGenres=${bookGenres}&bookAuthors=${bookAuthors}&bookDescription=${bookDesc}`);
 
-    if(books.length > 0){
+    if (books.length > 0) {
         books.length = 0;
     }
 
@@ -74,14 +74,12 @@ document.getElementById('availableBooks').addEventListener('click', (e) => {
 
     let filteredBooks = [];
     for (const book of books) {
-        if(book.remainingAmount > 0){
+        if (book.remainingAmount > 0) {
             filteredBooks.push(book);
         }
     }
 
-    // if(filteredBooks.length > 0){
-        fillBooksTable(filteredBooks);
-    // }
+    fillBooksTable(filteredBooks);
 });
 
 document.getElementById('unavailableBooks').addEventListener('click', (e) => {
@@ -89,14 +87,12 @@ document.getElementById('unavailableBooks').addEventListener('click', (e) => {
 
     let filteredBooks = [];
     for (const book of books) {
-        if(book.remainingAmount === 0){
+        if (book.remainingAmount === 0) {
             filteredBooks.push(book);
         }
     }
 
-    // if(filteredBooks.length > 0){
-        fillBooksTable(filteredBooks);
-    // }
+    fillBooksTable(filteredBooks);
 });
 
 document.getElementById('allBooks').addEventListener('click', (e) => {
