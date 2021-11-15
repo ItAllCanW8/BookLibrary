@@ -12,6 +12,8 @@
 db.url=url
 db.user=user
 db.password=password
+```
+
 * Enter email address and password in the properties file (`mail.properties`) for correct email sending
  ```java
 mail.user.name=yourEmail
