@@ -3,7 +3,6 @@ package by.itechart.BookLibrary.model.entity.factory.impl;
 import by.itechart.BookLibrary.controller.attribute.RequestParameter;
 import by.itechart.BookLibrary.model.entity.Book;
 import by.itechart.BookLibrary.model.entity.factory.EntityFactory;
-import by.itechart.BookLibrary.model.service.validation.BookValidator;
 
 import java.util.*;
 import java.util.stream.Collectors;

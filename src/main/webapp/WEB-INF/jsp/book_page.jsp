@@ -62,7 +62,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                           pattern="[\w\p{javaWhitespace}.,]{3,255}"
+                                           pattern="[\w\p\s,']{1,255}"
                                            value="${book.title}"/>
                                 </h3>
 
@@ -74,7 +74,7 @@
                                                class="form-control field"
                                                placeholder="3 - 45 characters"
                                                required
-                                               pattern="[А-Яа-я\w\p{javaWhitespace}.,]{3,45}"
+                                               pattern="[А-Яа-я\w\s,]{2,45}"
                                                value="${book.publisher}"/>
                                     </div>
                                 </h5>
@@ -103,13 +103,13 @@
                                 </h5>
 
                                 <h5>
-                                    <label for="inputBookISBN">ISBN-13</label>
+                                    <label for="inputBookISBN">ISBN</label>
                                     <div class="form-group mt-1">
                                         <input type="text" id="inputBookISBN" name="bookISBN"
                                                class="form-control field"
                                                placeholder="978-3-16-148410-0"
                                                required
-                                               pattern="^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$"
+                                               pattern="(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$"
                                                value="${book.isbn}"/>
                                     </div>
                                 </h5>
@@ -134,7 +134,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                           pattern="([a-zA-Z.\p{javaWhitespace}]{3,255}[,\p{javaWhitespace}}]?)+"
+                                           pattern="([a-zA-Z'\s]{2,255}[,\s}]?)+"
                                            value="${book.authors}"/>
                                 </div>
                             </h4>
@@ -146,7 +146,7 @@
                                            class="form-control field"
                                            placeholder="3 - 255 characters"
                                            required
-                                           pattern="([a-zA-Z.\p{javaWhitespace}]{3,255}[,\p{javaWhitespace}}]?)+"
+                                           pattern="([a-zA-Z-'\s]{2,255}[,\s}]?)+"
                                            value="${book.genres}"/>
                                 </div>
                             </h4>

@@ -24,6 +24,7 @@
             <input type="text" id="inputBookTitle" name="bookTitle"
                    class="form-control field"
                    placeholder="3 - 255 characters"
+                   pattern="[\w\s,']{1,255}|^$"
                    required/>
 
             <label for="inputBookAuthors">Author(-s)</label>
@@ -31,6 +32,7 @@
                 <input type="text" id="inputBookAuthors" name="bookAuthors"
                        class="form-control field"
                        placeholder="3 - 255 characters"
+                       pattern="([a-zA-Z'\s]{1,255}[,\s}]?)+|^$/"
                        required/>
             </div>
 
@@ -39,6 +41,7 @@
                 <input type="text" id="inputBookGenres" name="bookGenres"
                        class="form-control field"
                        placeholder="3 - 255 characters"
+                       pattern="([a-zA-Z-'\s]{1,255}[,\s}]?)+|^$/"
                        required/>
             </div>
 
@@ -46,8 +49,8 @@
             <textarea id="inputBookDescription" name="bookDescription" class="form-control"
                       rows="5"
                       placeholder="up to 1000 characters"
-                      minlength="3"
-                      maxlength="1000">${book.description}</textarea>
+                      minlength="1"
+                      maxlength="1000"></textarea>
             <button type="submit" id="searchButt" class="btn btn-outline-success" style="margin-top: 1%">Search</button>
         </form>
 
