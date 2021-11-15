@@ -7,7 +7,13 @@
 
 # To start
 * execute ddl.sql
-* Don't forget to enter email address and password in the properties file (`mail.properties`) for correct email sending
+* Enter db user, pass and url in the properties file (`db.properties`)
+ ```java
+db.url=url
+db.user=user
+db.password=password
+* Enter email address and password in the properties file (`mail.properties`) for correct email sending
  ```java
 mail.user.name=yourEmail
 mail.user.password=yourPassword
+
