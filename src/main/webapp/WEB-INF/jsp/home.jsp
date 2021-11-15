@@ -77,29 +77,32 @@
                        role="button" style="width: 40%" aria-pressed="true">Add</a>
                 </div>
 
-                <div style="display: flex;justify-content: center">
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                            data-bs-target="#deleteBooksModal" style="width: 40%; margin-top: 1%; margin-bottom: 1%">
-                        Delete
-                    </button>
-                </div>
-
-                <div class="col-2" style="display: flex;justify-content: center">
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="recordsPerPage"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">Records per Page
+                <c:if test="${books.size() > 0}">
+                    <div style="display: flex;justify-content: center">
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#deleteBooksModal"
+                                style="width: 40%; margin-top: 1%; margin-bottom: 1%">
+                            Delete
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recordsPerPage">
-                            <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=10&filter=${filterMode}">10</a>
-                            </li>
-                            <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?recordsPerPage=20&filter=${filterMode}">20</a>
-                            </li>
-                        </ul>
                     </div>
-                </div>
+
+                    <div class="col-2" style="display: flex;justify-content: center">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="recordsPerPage"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">Records per Page
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recordsPerPage">
+                                <li><a class="dropdown-item"
+                                       href="${pageContext.request.contextPath}/home.do?recordsPerPage=5&filter=${filterMode}">5</a>
+                                </li>
+                                <li><a class="dropdown-item"
+                                       href="${pageContext.request.contextPath}/home.do?recordsPerPage=10&filter=${filterMode}">10</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </c:if>
 
                 <div class="col-2" style="display: flex;justify-content: center">
                     <div class="dropdown">
@@ -108,9 +111,11 @@
                                 aria-expanded="false">Filter by availability
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="filterByAvailability">
-                            <li><a class="dropdown-item"
-                                   href="${pageContext.request.contextPath}/home.do?filter=available&recordsPerPage=${recordsPerPage}&page=${currentPage}">Available</a>
-                            </li>
+                            <c:if test="${books.size() > 0}">
+                                <li><a class="dropdown-item"
+                                       href="${pageContext.request.contextPath}/home.do?filter=available&recordsPerPage=${recordsPerPage}&page=${currentPage}">Available</a>
+                                </li>
+                            </c:if>
                             <li><a class="dropdown-item"
                                    href="${pageContext.request.contextPath}/home.do?filter=unavailable&recordsPerPage=${recordsPerPage}&page=${currentPage}">Unavailable</a>
                             </li>
@@ -122,6 +127,7 @@
             </div>
         </div>
 
+        <c:if test="${books.size() > 0}">
         <div class="event_container">
             <table id="booksTable" class="table table-dark table-bordered border-secondary">
                 <thead>
@@ -185,7 +191,7 @@
                 </div>
             </div>
 
-            <c:if test="${currentPage != 1}">
+            <c:if test="${currentPage != 1 && books.size() > 0}">
                 <th><a href="home.do?page=${currentPage - 1}&recordsPerPage=${recordsPerPage}&filter=${filterMode}">Previous</a>
                 </th>
             </c:if>
@@ -213,6 +219,7 @@
             </table>
         </div>
     </div>
+    </c:if>
 </section>
 
 <script src="${pageContext.request.contextPath}/js/home.js"></script>

@@ -8,7 +8,6 @@ import by.itechart.BookLibrary.model.dao.ReaderDao;
 import by.itechart.BookLibrary.model.dao.impl.DaoFactory;
 import by.itechart.BookLibrary.model.entity.Reader;
 import by.itechart.BookLibrary.model.service.ReaderService;
-import by.itechart.BookLibrary.model.service.validation.BookValidator;
 import by.itechart.BookLibrary.model.service.validation.ReaderValidator;
 
 import java.sql.Connection;
